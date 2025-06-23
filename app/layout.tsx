@@ -1,26 +1,25 @@
-import type { Metadata } from "next";
-import "./globals.css";
+// app/layout.tsx
+import './globals.css';
+import { Inter } from 'next/font/google';
 import { Providers } from './providers';
-import Sidebar from "@/components/Sidebar";
 
-export const metadata: Metadata = {
-  title: "Expense Tracker",
-  description: "Track your Expenses",
+const inter = Inter({ subsets: ['latin'] });
+
+export const metadata = {
+  title: 'SpendSense - Track Your Spending Smartly',
+  description: 'Take control of your finances with SpendSense, the easiest way to track your expenses, set budgets, and achieve your financial goals.',
 };
 
-// app/layout.
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>
-        <Providers>
-          <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white flex ">
-            <Sidebar />
-            <main className="p-6 flex-1 h-full">{children}</main>
-          </div>
-        </Providers>
+      <body className={`${inter.className} bg-white dark:bg-gray-900`}>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
 }
-

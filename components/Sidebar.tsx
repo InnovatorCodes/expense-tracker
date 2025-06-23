@@ -1,7 +1,8 @@
 // app/dashboard/components/Sidebar.tsx
 import { Home, BarChart2, DollarSign, Settings, HelpCircle } from 'lucide-react';
+//import { auth } from '@/auth';
 
-const Sidebar = () => {
+const Sidebar = async () => {
   const menuItems = [
     { icon: <Home size={30} />, name: 'Dashboard' },
     { icon: <BarChart2 size={30} />, name: 'Analytics' },
@@ -9,6 +10,7 @@ const Sidebar = () => {
     { icon: <Settings size={30} />, name: 'Settings' },
     { icon: <HelpCircle size={30} />, name: 'Help' },
   ];
+  //const session=await auth();
 
   return (
     <aside className="w-sm bg-white dark:bg-gray-800 p-6 flex-col hidden sm:flex">
