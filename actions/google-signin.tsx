@@ -5,7 +5,11 @@ import { AuthError } from "next-auth";
 
 export async function googleAuthenticate(){
     try{
-        await signIn('google');
+        await signIn('google',
+            {
+                redirectTo: '/dashboard',
+            }
+        );
     }
     catch(error){
         if(error instanceof AuthError){

@@ -21,7 +21,7 @@ export default async function AuthenticatedLayout({
   // If the user is NOT authenticated (no session or no user ID in session),
   // immediately redirect them to the login page.
   if (session?.user) {
-    redirect('/auth/dashboard'); // This will redirect to your Auth.js `pages.signIn` config if set.
+    redirect('/dashboard'); // This will redirect to your Auth.js `pages.signIn` config if set.
   }
 
   // 3. If authenticated, render the children (the actual dashboard page content).
