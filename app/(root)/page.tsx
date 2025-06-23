@@ -1,5 +1,6 @@
 // app/page.tsx
 import { DollarSign, BarChart, ShieldCheck, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
 export default function LandingPage() {
   return (
@@ -20,12 +21,8 @@ export default function LandingPage() {
           <a className="text-sm font-medium hover:underline underline-offset-4 text-gray-600 dark:text-gray-300" href="#">
             About
           </a>
-          <a href="/login" className="px-4 py-2 text-sm font-medium rounded-md text-indigo-600 hover:bg-indigo-50 dark:hover:bg-gray-800">
-            Login
-          </a>
-          <a href="/dashboard" className="px-4 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
-            Get Started
-          </a>
+          <Link href='/auth/login' className="px-4 py-2 text-sm font-medium rounded-md text-indigo-600 hover:bg-indigo-50 dark:hover:bg-gray-800">Login</Link>
+          <Link href='/dashboard' className="px-4 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">Get Started</Link>
         </nav>
       </header>
 
@@ -41,13 +38,10 @@ export default function LandingPage() {
                 Stop wondering where your money goes. SpendSense helps you take control of your finances with powerful, easy-to-use tools.
               </p>
               <div className="flex flex-col gap-2 min-[400px]:flex-row justify-center">
-                <a
-                  className="inline-flex h-10 items-center justify-center rounded-md bg-indigo-600 px-8 text-sm font-medium text-white shadow transition-colors hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                  href="/dashboard"
-                >
+                <Link href="/dashboard" className="inline-flex h-10 items-center justify-center rounded-md bg-indigo-600 px-8 text-sm font-medium text-white shadow transition-colors hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
                   Start Tracking for Free
                   <ArrowRight className="ml-2 h-4 w-4" />
-                </a>
+                </Link>
               </div>
             </div>
           </div>

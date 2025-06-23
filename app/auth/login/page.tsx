@@ -38,6 +38,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 
 
 const LoginPage: React.FC = () => {
+  // Redirect to dashboard if user is already logged in
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
