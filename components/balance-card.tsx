@@ -1,7 +1,7 @@
 // app/dashboard/components/BalanceCard.tsx
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react'; // Auth.js client provider
-import { subscribeToBalance } from '@/utils/firebase'; // Import the function to subscribe to balance
+import { subscribeToBalance, subscribeToMonthlyTotals } from '@/utils/firebase'; // Import the function to subscribe to balance
 import { ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card'; // Shadcn/ui components
@@ -12,20 +12,34 @@ const BalanceCard = ({currency}: {currency:string}) => {
 
   const [balance, setBalance] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
+  const [income, setIncome] = useState<number>(0); // New state for monthly income
+  const [expenses, setExpenses] = useState<number>(0);
 
   // Effect to subscribe to balance updates
   useEffect(() => {
     let unsubscribeBalance: (() => void) | undefined;
+    let unsubscribeMonthlyTotals: (() => void) | undefined; 
+
+
     setLoading(true);
 
     if (userId && status === 'authenticated') {
-      console.log("BalanceDisplay: Subscribing to balance for user:", userId);
       // Subscribe to balance
       unsubscribeBalance = subscribeToBalance(userId, (currentBalance) => {
         setBalance(currentBalance);
-        setLoading(false);
-        console.log("BalanceDisplay: Real-time balance updated:", currentBalance);
       });
+
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth() + 1; // Month is 1-indexed for subscribeToMonthlyTotals
+
+      unsubscribeMonthlyTotals = subscribeToMonthlyTotals(userId, currentYear, currentMonth, (income, expenses) => {
+        setIncome(income);
+        setExpenses(expenses);
+        setLoading(false); // Set loading to false once all data is fetched
+        console.log("BalanceDisplay: Monthly totals updated. Income:", income, "Expenses:", expenses);
+      });
+
 
       // Also fetch the user's default currency
 
@@ -33,14 +47,14 @@ const BalanceCard = ({currency}: {currency:string}) => {
       console.log("BalanceDisplay: User not authenticated, resetting balance.");
       setBalance(0);
       setLoading(false);
-    } else if (status === 'loading') {
-      console.log("BalanceDisplay: Session loading...");
-    }
+    } 
 
     return () => {
       if (unsubscribeBalance) {
-        console.log("BalanceDisplay: Unsubscribing from balance.");
         unsubscribeBalance();
+      }
+      if( unsubscribeMonthlyTotals) {
+        unsubscribeMonthlyTotals();
       }
     };
   }, [userId, status]); // Re-run when user ID or auth status changes
@@ -80,8 +94,8 @@ const BalanceCard = ({currency}: {currency:string}) => {
                 <ArrowUpRight className="text-green-600 dark:text-green-300" size={20}/>
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Total Income</p>
-                <p className="text-lg font-semibold text-gray-800 dark:text-white">$4500</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Income this Month</p>
+                <p className="text-lg font-semibold text-gray-800 dark:text-white">{getCurrencySymbol()}{income}</p>
               </div>
           </div>
           <div className="flex items-center gap-4 p-4 bg-red-50 dark:bg-red-900/50 rounded-lg">
@@ -89,8 +103,8 @@ const BalanceCard = ({currency}: {currency:string}) => {
                 <ArrowDownLeft className="text-red-600 dark:text-red-300" size={20}/>
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Total Expense</p>
-                <p className="text-lg font-semibold text-gray-800 dark:text-white">$1,650.80</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Expenses this Month</p>
+                <p className="text-lg font-semibold text-gray-800 dark:text-white">{getCurrencySymbol()}{expenses}</p>
               </div>
           </div>
       </div>

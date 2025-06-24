@@ -3,7 +3,7 @@
 
 import { auth } from '@/auth'; // Import the server-side auth function
 import { redirect } from 'next/navigation'; // Server-side redirect function
-import Sidebar from '@/components/Sidebar'; // Import your Sidebar component
+import Sidebar from '@/components/sidebar'; // Import your Sidebar component
 import { Metadata } from 'next'; // Import Metadata type for page metadata
 
 // You can also import and render your application's common UI elements here,

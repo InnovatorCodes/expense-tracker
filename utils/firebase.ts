@@ -17,6 +17,7 @@ import {
   increment,
   getDoc,
   setDoc,
+  where
 } from "firebase/firestore";
 import { Transaction } from "@/types/transaction";
 
@@ -174,9 +175,8 @@ export const subscribeToBalance = (
   userId: string,
   callback: (balance: number) => void
 ) => {
-  console.log("subscribeToBalance called for userId:", userId);
   if (!userId) {
-    console.error("subscribeToBalance: userId is undefined or null. Cannot subscribe.");
+    console.error("userId is undefined or null.");
     callback(0); // Default to 0 if no user
     return () => {};
   }
@@ -189,14 +189,74 @@ export const subscribeToBalance = (
     if (docSnap.exists()) {
       // Safely cast and default to 0 if 'currentBalance' field is missing or not a number
       const balance = (docSnap.data()?.currentBalance as number) || 0;
-      console.log("Firestore: Fetched balance:", balance);
       callback(balance);
     } else {
-      console.log("Firestore: User document does not exist for balance subscription.");
       callback(0); // Default balance if user doc doesn't exist
     }
   }, (error) => {
     console.error("Firestore: Error subscribing to balance:", error.name, error.message, error.code);
+  });
+
+  return unsubscribe;
+};
+
+export const subscribeToMonthlyTotals = (
+  userId: string,
+  year: number,
+  month: number, // 1-indexed month
+  callback: (monthlyIncome: number, monthlyExpenses: number) => void
+) => {
+  if (!userId) {
+    console.error("userId is undefined or null");
+    callback(0, 0);
+    return () => {};
+  }
+
+  const transactionsCollectionRef = getUserTransactionsCollectionRef(userId);
+
+  // Calculate the start and end dates for the current month in "YYYY-MM-DD" format
+  const startOfMonth = `${year}-${String(month).padStart(2, '0')}-01`;
+  const endOfMonthDate = new Date(year, month, 0); // Day 0 of next month is last day of current month
+  const endOfMonth = `${year}-${String(month).padStart(2, '0')}-${String(endOfMonthDate.getDate()).padStart(2, '0')}`;
+
+  // Query for transactions within the current month
+  // NOTE: This query with `where` clauses on 'date' and `orderBy` on 'date' and 'createdAt'
+  // might require a composite index in Firestore.
+  // Example Index (if you encounter 'The query requires an index' error):
+  // Collection ID: transactions
+  // Fields:
+  // - date (Ascending)
+  // - createdAt (Ascending)
+  // - __name__ (Ascending)
+  // AND/OR for type filters if you change to separate queries per type, e.g.:
+  // - type (Ascending)
+  // - date (Ascending)
+  // - createdAt (Ascending)
+  const q = query(
+    transactionsCollectionRef,
+    where("date", ">=", startOfMonth),
+    where("date", "<=", endOfMonth),
+    orderBy("date", "asc"), // Order by date for consistency
+    orderBy("createdAt", "asc") // Then by creation time for tie-breaking
+  );
+
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    let totalIncome = 0;
+    let totalExpenses = 0;
+
+    snapshot.docs.forEach(doc => {
+      const data = doc.data();
+      const amount = parseFloat(data.amount) || 0;
+      if (data.type === 'income') {
+        totalIncome += amount;
+      } else if (data.type === 'expense') {
+        totalExpenses += amount;
+      }
+    });
+
+    callback(totalIncome, totalExpenses);
+  }, (error) => {
+    console.error("Firestore: Error subscribing to monthly totals:", error.name, error.message, error.code);
   });
 
   return unsubscribe;
@@ -257,9 +317,30 @@ export const addTransaction = async (
  */
 export const deleteTransaction = async (userId: string, transactionId: string) => {
   try {
+    let amountChange =0;
     const transactionDocRef = doc(getUserTransactionsCollectionRef(userId), transactionId);
+    await getDoc(transactionDocRef).then((docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        amountChange = data.type === 'income' ? -data.amount : data.amount; // Negate the amount for balance update
+      } else {
+        console.warn(`Transaction document with ID ${transactionId} does not exist.`);
+        return; // Exit if the document doesn't exist
+      }
+    });
     await deleteDoc(transactionDocRef);
-    console.log("Transaction document successfully deleted!");
+    const userDocRef = getUserDocRef(userId);
+    const userDocSnapshot = await getDoc(userDocRef);
+    if (!userDocSnapshot.exists()) {
+      await setDoc(userDocRef, {
+        currentBalance: amountChange, // Set initial balance
+      });
+      setUserDefaultCurrency(userId,'INR')
+    } else {
+      await updateDoc(userDocRef, {
+        currentBalance: increment(amountChange),
+      });
+    }
   } catch (e) {
     console.error("Error removing transaction document: ", e);
     throw e;

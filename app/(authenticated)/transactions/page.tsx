@@ -20,7 +20,7 @@ const TransactionsPage: React.FC = () => {
   const [selectedTransactionType, setSelectedTransactionType] = React.useState<TransactionType>('expense');
   const [currency, setCurrency] = useState("INR");
 
-  const { data: session,} = useSession(); // Get session data and status from Auth.js
+  const { data: session} = useSession(); // Get session data and status from Auth.js
   const userId = session?.user?.id;
 
   const handleAddTransactionClick = (type: TransactionType) => {

@@ -5,7 +5,6 @@ import { Pie, PieChart } from "recharts"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -40,8 +39,7 @@ export function ExpenseChart() {
   return (
     <Card className="flex flex-col bg-gray-800">
       <CardHeader className="items-center pb-0">
-        <CardTitle>This Month</CardTitle>
-        <CardDescription>June 2025</CardDescription>
+        <CardTitle>June 2025</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer
