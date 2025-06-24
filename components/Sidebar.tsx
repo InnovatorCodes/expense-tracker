@@ -16,7 +16,7 @@ const Sidebar = async () => {
     <aside className="w-sm bg-white dark:bg-gray-800 p-6 flex-col hidden sm:flex">
       <div className="flex items-center gap-2 mb-10">
         <DollarSign className="text-indigo-500" size={32} />
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">ExpenseT</h1>
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">SpendSense</h1>
       </div>
       <nav className="flex-1">
         <ul className='flex flex-col  gap-4'>

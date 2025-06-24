@@ -3,7 +3,7 @@
 
 "use server";
 
-import { z } from "zod";
+import * as z from "zod/v4";
 import { auth } from "@/auth"; // Import the server-side auth function
 import { addTransaction } from "@/utils/firebase"; // Import Firestore utility
 import { addTransactionSchema } from "@/schemas/transaction-schema"; // Import Zod schema
@@ -38,10 +38,11 @@ export async function createTransaction(formData: z.infer<typeof addTransactionS
     return { success: "Transaction added successfully!" };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      console.error("Server-side validation error:", error.errors);
+      console.error("Server-side validation error");
       return { error: "Validation failed. Please check your input." };
     }
     console.error("Error creating transaction:", error);
     return { error: "Failed to add transaction. Please try again." };
   }
 }
+

@@ -1,6 +1,6 @@
 // app/dashboard/page.tsx
 "use client"
-import BalanceCard from "@/components/BalanceCard";
+import BalanceCard from "@/components/balance-card";
 import RecentTransactions from "@/components/RecentTransactions";
 import { ExpenseChart } from "@/components/ExpenseChart";
 import { PastWeekChart } from "@/components/PastWeekChart";

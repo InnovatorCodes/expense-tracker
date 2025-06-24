@@ -1,7 +1,7 @@
-// utils/firebase.ts
-// This file initializes Firebase and provides helper functions to interact with Cloud Firestore.
+// lib/firestore.ts
+// This file initializes Firebase and provides utility functions
+// for interacting with Cloud Firestore, specifically for user expenses.
 
-// Import necessary functions from the Firebase SDK
 import { initializeApp, getApps, getApp } from "firebase/app";
 import {
   getFirestore,
@@ -12,101 +12,194 @@ import {
   addDoc,
   serverTimestamp,
   doc,
-  setDoc,
-  getDoc,
+  deleteDoc,
   updateDoc,
   increment,
-  deleteDoc,
+  getDoc,
+  setDoc,
 } from "firebase/firestore";
-import { Transaction } from "@/types/transaction"; // Import the Transaction interface and type
+import { Transaction } from "@/types/transaction";
 
+// --- GLOBAL VARIABLES (Provided by Canvas Runtime) ---
+declare const __app_id: string | undefined;
+declare const __firebase_config: string | undefined;
 
-const localFireBaseConfig = {
-  apiKey: process.env.FIREBASE_API_KEY,
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.FIREBASE_PROJECT_ID,
-  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.FIREBASE_APP_ID,
-  measurementId: process.env.FIREBASE_MEASUREMENT_ID
-};
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+const firebaseConfig = typeof __firebase_config !== 'undefined'
+  ? JSON.parse(__firebase_config)
+  : {
+      apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID, // This must be your correct project ID
+      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+      appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+      measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+    };
 
-// --- MANDATORY GLOBAL VARIABLES FOR CANVAS ENVIRONMENT ---
-// These variables are provided by the Canvas runtime and are crucial
-// for correctly initializing Firebase and structuring your Firestore paths.
-// DO NOT remove or modify these lines.
-// 'default-app-id' is a fallback for local development outside the Canvas environment.
-//const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-// __firebase_config is a JSON string of your Firebase project's config.
-// It will be parsed into a JavaScript object.
-const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : localFireBaseConfig;
-
-// 1. Initialize Firebase App
-// This creates and initializes a Firebase app instance using your project configuration.
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-
-// 2. Get Firestore Database Instance
-// This gets the Firestore database instance associated with your Firebase app.
 const db = getFirestore(app);
 
-// --- Data Interface Definition ---
-// Define the structure for an 'Expense' document.
-// This helps with type safety throughout your application.
-// --- Firestore Data Access Helper Functions ---
+export { db, appId };
 
 /**
- * Gets a reference to the user's private expenses collection in Firestore.
- * This function constructs the full path: /artifacts/{appId}/users/{userId}/expenses
- * This path adheres to the Canvas environment's security and data isolation requirements.
+ * Gets a reference to a user's specific transactions collection in Firestore.
+ * IMPORTANT: This now points to a top-level `users` collection.
+ * Path: `users/{userId}/transactions`
  *
- * @param userId The authenticated user's unique ID (obtained from Auth.js session).
- * @returns A CollectionReference to the user's expenses.
- * @throws Error if userId is not provided.
+ * @param userId The ID of the currently authenticated user.
+ * @returns A CollectionReference for the user's transactions.
  */
 const getUserTransactionsCollectionRef = (userId: string) => {
-  // Using 'artifacts' and 'appId' as per previous discussion and existing structure.
-  // If you wish to use 'users/{userId}/transactions' directly as discussed,
-  // you would change this line to: `return collection(db, `users/${userId}/transactions`);`
-  return collection(db, `users/${userId}/transactions`);
+  const path = `users/${userId}/transactions`;
+  return collection(db, path);
 };
 
 /**
  * Gets a reference to a user's main document in Firestore.
- * This document will store aggregated data like currentBalance.
- * Path: `artifacts/{appId}/users/{userId}`
+ * IMPORTANT: This now points to a top-level `users` collection.
+ * Path: `users/{userId}`
  *
  * @param userId The ID of the currently authenticated user.
  * @returns A DocumentReference for the user's main document.
  */
 const getUserDocRef = (userId: string) => {
-  return doc(db, `users`, userId);
+  const path = `users/${userId}`;
+  return doc(db, path);
 };
 
+/**
+ * Fetches the default currency for a specific user.
+ *
+ * @param userId The ID of the currently authenticated user.
+ * @returns The default currency string (e.g., "USD", "INR") or undefined if not set.
+ */
+export const getUserDefaultCurrency = async (userId: string): Promise<string | undefined> => {
+  try {
+    const userDocRef = getUserDocRef(userId);
+    const docSnap = await getDoc(userDocRef);
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      console.log(`Firestore: Fetched default currency for user ${userId}:`, data?.defaultCurrency);
+      return data?.defaultCurrency as string;
+    } else {
+      console.log(`Firestore: User document for ${userId} does not exist or defaultCurrency not set.`);
+      return undefined;
+    }
+  } catch (error) {
+    console.error(`Firestore: Error fetching default currency for user ${userId}:`, error);
+    return undefined;
+  }
+};
+
+/**
+ * Sets the default currency for a specific user.
+ * This will create the user document if it doesn't exist.
+ *
+ * @param userId The ID of the currently authenticated user.
+ * @param currency The currency to set as default (e.g., "USD", "INR").
+ */
+export const setUserDefaultCurrency = async (userId: string, currency: string) => {
+  try {
+    const userDocRef = getUserDocRef(userId);
+    // Use setDoc with merge: true to update only the defaultCurrency field
+    // without overwriting other fields if the document already exists.
+    await setDoc(userDocRef, { defaultCurrency: currency }, { merge: true });
+    console.log(`Firestore: Default currency for user ${userId} set to ${currency}.`);
+  } catch (error) {
+    console.error(`Firestore: Error setting default currency for user ${userId}:`, error);
+    throw error; // Re-throw to handle in calling function
+  }
+};
+
+/**
+ * Subscribes to a user's transactions in real-time.
+ * It sets up an onSnapshot listener that calls a callback function
+ * whenever the transactions collection changes.
+ *
+ * @param userId The ID of the currently authenticated user.
+ * @param callback A function to call with the fetched transactions.
+ * @returns A function to unsubscribe from the listener.
+ */
 export const subscribeToTransactions = (
   userId: string,
   callback: (transactions: Transaction[]) => void
 ) => {
+
+  // If userId is missing, log an error and don't proceed with subscription
+  if (!userId) {
+    console.error("userId is undefined or null");
+    callback([]); // Return empty array immediately
+    return () => {}; // Return no-op unsubscribe
+  }
+
   const transactionsCollectionRef = getUserTransactionsCollectionRef(userId);
-  // Order transactions by date (descending) then by createdAt (descending)
   const q = query(transactionsCollectionRef, orderBy("date", "desc"), orderBy("createdAt", "desc"));
 
   const unsubscribe = onSnapshot(q, (snapshot) => {
-    const fetchedTransactions: Transaction[] = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      // Ensure createdAt is a Date object from Firestore Timestamp
-      createdAt: (doc.data().createdAt?.toDate() || new Date()) as Date,
-      // Ensure date is a string in "YYYY-MM-DD" format
-      date: doc.data().date || new Date().toISOString().slice(0, 10),
-    }) as Transaction); // Type assertion for safety
+    const fetchedTransactions: Transaction[] = snapshot.docs.map(doc => {
+      const data = doc.data();
+      const transaction: Transaction = {
+        id: doc.id,
+        name: data.name,
+        amount: parseFloat(data.amount) || 0, // Ensure amount is parsed as number
+        category: data.category,
+        date: data.date,
+        type: data.type, // 'expense' or 'income'
+        notes: data.notes || undefined,
+        createdAt: data.createdAt?.toDate() || new Date(), // Convert Firestore Timestamp to Date
+      };
+      return transaction;
+    });
 
     callback(fetchedTransactions);
   }, (error) => {
-    console.error("Error subscribing to transactions:", error);
-    // You might want to handle this error more gracefully in your UI
+    // This is the error handler for the onSnapshot listener itself
+    console.error("Firestore: onSnapshot listener error:", error.name, error.message, error.code);
   });
 
-  return unsubscribe; // Return the unsubscribe function to clean up the listener
+  return unsubscribe;
+};
+
+/**
+ * Subscribes to a user's balance in real-time.
+ * It sets up an onSnapshot listener that calls a callback function
+ * whenever the user's currentBalance field changes.
+ *
+ * @param userId The ID of the currently authenticated user.
+ * @param callback A function to call with the fetched balance.
+ * @returns A function to unsubscribe from the listener.
+ */
+export const subscribeToBalance = (
+  userId: string,
+  callback: (balance: number) => void
+) => {
+  console.log("subscribeToBalance called for userId:", userId);
+  if (!userId) {
+    console.error("subscribeToBalance: userId is undefined or null. Cannot subscribe.");
+    callback(0); // Default to 0 if no user
+    return () => {};
+  }
+
+  const userDocRef = getUserDocRef(userId);
+  console.log("Firestore: Setting up onSnapshot listener for user balance:", userDocRef.path);
+
+  const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
+    console.log("Firestore: Balance onSnapshot triggered! Doc exists:", docSnap.exists());
+    if (docSnap.exists()) {
+      // Safely cast and default to 0 if 'currentBalance' field is missing or not a number
+      const balance = (docSnap.data()?.currentBalance as number) || 0;
+      console.log("Firestore: Fetched balance:", balance);
+      callback(balance);
+    } else {
+      console.log("Firestore: User document does not exist for balance subscription.");
+      callback(0); // Default balance if user doc doesn't exist
+    }
+  }, (error) => {
+    console.error("Firestore: Error subscribing to balance:", error.name, error.message, error.code);
+  });
+
+  return unsubscribe;
 };
 
 /**
@@ -140,9 +233,8 @@ export const addTransaction = async (
     if (!userDocSnapshot.exists()) {
       await setDoc(userDocRef, {
         currentBalance: amountChange, // Set initial balance
-        // You might add other user profile fields here if they are not stored in Auth.js's User collection
-        // e.g., userId: userId, createdAt: serverTimestamp() etc.
       });
+      setUserDefaultCurrency(userId,'INR')
     } else {
       await updateDoc(userDocRef, {
         currentBalance: increment(amountChange),
