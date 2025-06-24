@@ -7,7 +7,7 @@
 import React, { useState } from 'react';
 import * as z from 'zod/v4';
 import { Mail, LockKeyhole } from 'lucide-react'; // Lucide icons for email/password fields
-import { loginSchema } from '@/schemas/index';
+import { loginSchema } from '@/schemas/authentication-schema';
 import { login } from '@/actions/login';
 import { GoogleLogin } from '@/components/google-button';
 import Link from 'next/link';

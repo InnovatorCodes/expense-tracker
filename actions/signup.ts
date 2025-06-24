@@ -3,7 +3,7 @@
 import * as z from "zod/v4";
 import { prisma} from "@/prisma/prisma";
 import bcrypt from 'bcryptjs'
-import { signUpSchema } from "@/schemas/index";
+import { signUpSchema } from "@/schemas/authentication-schema";
 
 
 export const signUp = async(data: z.infer<typeof signUpSchema>)=>{

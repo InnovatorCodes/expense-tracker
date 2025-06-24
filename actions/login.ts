@@ -1,7 +1,7 @@
 "use server";
 
 import * as z from 'zod/v4';
-import { loginSchema } from '@/schemas/index';
+import { loginSchema } from '@/schemas/authentication-schema';
 import { prisma } from '@/prisma/prisma';
 import { signIn } from '@/auth';
 import { AuthError } from 'next-auth';

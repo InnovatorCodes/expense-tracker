@@ -36,7 +36,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 
-import { signUpSchema } from '@/schemas/index';
+import { signUpSchema } from '@/schemas/authentication-schema';
 
 
 const SignUpPage: React.FC = () => {
