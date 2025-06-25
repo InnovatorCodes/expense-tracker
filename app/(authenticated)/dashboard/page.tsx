@@ -8,11 +8,27 @@ import { ExpenseChart } from "@/components/expense-chart";
 import { PastWeekChart } from "@/components/past-week-chart";
 import TopTransactions from "@/components/top-transactions";
 import { getUserDefaultCurrency } from '@/utils/firebase';
+import FloatingActionButton from '@/components/floating-action-button';
+import TransactionModal from '@/components/transaction-modal';
+import { TransactionType } from '@/types/transaction'; // Import TransactionType
 
 export default function DashboardPage() {
   const { data: session} = useSession(); // Get session data and status from Auth.js
   const userId = session?.user?.id;
   const [currency, setCurrency] = useState("INR");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTransactionType, setSelectedTransactionType] = useState<TransactionType>('expense');
+
+  const handleAddTransactionClick = (type: TransactionType) => {
+      setSelectedTransactionType(type);
+      setIsModalOpen(true);
+    };
+
+  const handleTransactionSuccess = () => {
+    // Optionally show a toast notification here
+    setIsModalOpen(false); // Close modal on success
+  };
+
   useEffect(()=>{
         const fetchDefaultCurrency = async () => {
           if (userId) {
@@ -29,7 +45,7 @@ export default function DashboardPage() {
   return (
     <section className="p-6">
       <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(400px,1fr))] gap-6">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(500px,1fr))] gap-6">
         <div className="flex flex-col gap-6">
           <BalanceCard currency={currency} />
           <RecentTransactions currency={currency} />
@@ -37,10 +53,16 @@ export default function DashboardPage() {
         </div>
         <div className="flex flex-col gap-6">
           <ExpenseChart currency={currency} />
-          <PastWeekChart />
+          <PastWeekChart currency={currency} />
         </div>
       </div>
-      
+      <FloatingActionButton onAddTransaction={handleAddTransactionClick} />
+      <TransactionModal 
+        isOpen={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        onSuccess={handleTransactionSuccess}
+        initialType={selectedTransactionType} 
+      />
     </section>
   );
 }

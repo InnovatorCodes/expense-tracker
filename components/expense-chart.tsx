@@ -1,10 +1,10 @@
 "use client" // This component needs to be a Client Component to use hooks
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Pie, PieChart } from "recharts";
 import { useSession } from 'next-auth/react'; // To get the user session
 // Updated import: will use getMonthlyCategorizedExpenses instead of subscribeToMonthlyCategorizedExpenses
-import { getMonthlyCategorizedExpenses } from '@/utils/firebase'; // Updated import
+import { subscribeToMonthlyCategorizedExpenses } from '@/utils/firebase'; // Updated import
 import {
   Card,
   CardContent,
@@ -20,8 +20,7 @@ import {
   ChartLegend,
   ChartLegendContent
 } from "@/components/ui/chart";
-import { Loader2, Info, RefreshCw } from 'lucide-react'; // Added RefreshCw for refresh button
-import { Button } from '@/components/ui/button'; // Assuming you have a Button component
+import { Loader2, Info } from 'lucide-react'; // Added RefreshCw for refresh button
 
 // Define the structure for aggregated chart data
 interface CategoryExpenseData {
@@ -37,9 +36,6 @@ const COLORS = [
   "var(--chart-9)", "var(--chart-10)"
 ];
 
-// Helper to get currency symbol (can be moved to a utility file if used often)
-
-
 export function ExpenseChart({currency}: {currency: string}) {
   const { data: session, status } = useSession();
   const userId = session?.user?.id;
@@ -49,7 +45,6 @@ export function ExpenseChart({currency}: {currency: string}) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [currentMonthName, setCurrentMonthName] = useState('');
-  const [refreshTrigger, setRefreshTrigger] = useState(0); // State to trigger manual refresh
 
   const getCurrencySymbol = () => {
   switch (currency) {
@@ -62,85 +57,77 @@ export function ExpenseChart({currency}: {currency: string}) {
   }
 };
 
-  // Function to fetch and process categorized expenses
-  const fetchCategorizedExpenses = useCallback(async () => {
-    setLoading(true);
+  useEffect(() => {
+    // Clear previous errors if userId becomes available
     setError("");
 
-    if (userId && status === 'authenticated') {
-      const now = new Date();
-      const currentYear = now.getFullYear();
-      const currentMonth = now.getMonth() + 1; // Month is 1-indexed
-      setCurrentMonthName(now.toLocaleString('default', { month: 'long' }));
+    const now = new Date();
+    setCurrentMonthName(now.toLocaleString('default', { month: 'long' }));
+    setLoading(true);
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1; // Month is 1-indexed
 
-      try {
-        // Use the one-time fetch function
-        const categorizedExpenses = await getMonthlyCategorizedExpenses(userId, currentYear, currentMonth);
-        const categoryEntries = Object.entries(categorizedExpenses);
-        categoryEntries.sort(([, amountA], [, amountB]) => amountB - amountA);
-        const topCategories: CategoryExpenseData[] = [];
-        let otherAmount = 0;
-         const maxVisibleCategories = 9;
-        // Transform the fetched data into chartData and chartConfig
-        categoryEntries.forEach(([category, amount], index) => {
-          if (index < maxVisibleCategories) {
-            topCategories.push({
-              name: category,
-              amount: amount,
-              fill: COLORS[index % COLORS.length], // Assign a color
-            });
-          } else {
-            otherAmount += amount; // Sum remaining into 'Other'
-          }
-        });
-        if (otherAmount > 0) {
-          topCategories.push({
-            name: "Other",
-            amount: otherAmount,
-            fill: COLORS[maxVisibleCategories % COLORS.length], // Assign a color for 'Other'
+    console.log(`ExpenseChart: Setting up real-time listener for user: ${userId}, Month: ${currentMonth}/${currentYear}`);
+    setLoading(true); // Set loading true while waiting for first snapshot
+    if(userId){
+      const unsubscribe = subscribeToMonthlyCategorizedExpenses(
+        userId,
+        currentYear,
+        currentMonth,
+        (categorizedExpenses) => {
+          // --- Logic to group categories beyond 9 into 'Other' ---
+          const categoryEntries = Object.entries(categorizedExpenses);
+
+          // Sort by amount in descending order to get top categories
+          categoryEntries.sort(([, amountA], [, amountB]) => amountB - amountA);
+
+          const topCategories: CategoryExpenseData[] = [];
+          let otherAmount = 0;
+          const maxVisibleCategories = 9; // Number of top categories to display before grouping
+
+          categoryEntries.forEach(([category, amount], index) => {
+            if (index < maxVisibleCategories && amount > 0) { // Only include categories with non-zero amounts
+              topCategories.push({
+                name: category,
+                amount: amount,
+                fill: COLORS[index % COLORS.length], // Assign a color
+              });
+            } else {
+              otherAmount += amount; // Sum remaining into 'Other'
+            }
           });
+
+          if (otherAmount > 0) {
+            topCategories.push({
+              name: "Other",
+              amount: otherAmount,
+              fill: COLORS[maxVisibleCategories % COLORS.length], // Assign a color for 'Other'
+            });
+          }
+
+          // Create chartConfig dynamically based on the newChartData
+          const newChartConfig: ChartConfig = topCategories.reduce((acc, item) => {
+            acc[item.name] = {
+              label: item.name,
+              color: item.fill,
+            };
+            return acc;
+          }, {} as ChartConfig);
+
+          setChartData(topCategories);
+          setChartConfig(newChartConfig);
+          setLoading(false); // Data received, stop loading
         }
-
-        // Create chartConfig dynamically
-        const newChartConfig: ChartConfig = topCategories.reduce((acc, item) => {
-          acc[item.name] = {
-            label: item.name,
-            color: item.fill,
-          };
-          return acc;
-        }, {} as ChartConfig);
-
-        setChartData(topCategories);
-        setChartConfig(newChartConfig);
-      } catch (err) {
-        console.error("ExpenseChart: Error fetching categorized expenses:", err);
-        setError("Failed to load expense chart. Please try refreshing.");
-        setChartData([]);
-        setChartConfig({});
-      } finally {
-        setLoading(false);
-      }
-
-    } else if (status === 'unauthenticated' || !userId) {
-      setChartData([]);
-      setChartConfig({});
-      setLoading(false);
-      setError("Please log in to view your expense chart.");
-    } else if (status === 'loading') {
-      // Still loading session, keep loading state active
+      );
+      return () => {
+      unsubscribe();
+    };
     }
-  }, [userId, status]); // Removed refreshTrigger as dependency
+    // Return the unsubscribe function for cleanup
+  }, [userId, status]);
 
-  useEffect(() => {
-    // Only fetch if session status is not 'loading'
-    if (status !== 'loading') {
-      fetchCategorizedExpenses();
-    }
-  }, [status, fetchCategorizedExpenses,refreshTrigger]); // Dependencies for initial load and refresh
-
-  const handleRefreshClick = () => {
-    setRefreshTrigger(prev => (prev + 1)%2); // Increment to trigger fetchCategorizedExpenses
-  };
+  // Function to fetch and process categorized expenses
+  
 
   if (loading) {
     return (
@@ -170,30 +157,20 @@ export function ExpenseChart({currency}: {currency: string}) {
           <CardTitle className="text-xl font-bold text-gray-100">
             Expenses for {currentMonthName} {new Date().getFullYear()}
           </CardTitle>
-          <Button
-            onClick={handleRefreshClick}
-            variant="outline"
-            size="icon"
-            className="text-gray-400 hover:text-gray-200 border-gray-600 hover:bg-gray-700"
-            disabled={loading || status === 'loading'}
-            aria-label="Refresh chart data"
-          >
-            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <RefreshCw className="h-5 w-5" />}
-          </Button>
         </div>
         <CardDescription className="text-gray-300">Categorized spending overview</CardDescription>
       </CardHeader>
-      <CardContent className="flex-1 pb-0">
+      <CardContent className="flex-1 pb-0 px-4">
         {chartData.length === 0 ? (
           <div className="text-center p-8 text-gray-400 dark:text-gray-500 bg-gray-700 rounded-md m-4">
-            <Info className="h-8 w-8 mx-auto mb-3" />
+            <Info className="h-8 w-auto mb-3" />
             <p className="font-semibold">No expenses recorded for this month.</p>
             <p className="text-sm">Add some transactions to see your spending breakdown!</p>
           </div>
         ) : (
           <ChartContainer
             config={chartConfig}
-            className="[&_.recharts-pie-label-text]:fill-foreground mx-auto max-h-[250px] pb-0"
+            className="[&_.recharts-pie-label-text]:fill-foreground mx-auto max-h-[300px] pb-0"
           >
             <PieChart>
               <ChartTooltip content={<ChartTooltipContent hideLabel formatter={(value, name) => [
@@ -207,13 +184,10 @@ export function ExpenseChart({currency}: {currency: string}) {
                   `${(percent * 100).toFixed(0)}%${payload.value ? ` (${payload.value})` : ''}`
                 }
                 nameKey="name"
-                outerRadius={"70%"}
+                outerRadius={"80%"}
               />
               <ChartLegend
                 content={<ChartLegendContent nameKey="name" />}
-                layout="vertical"
-                verticalAlign="middle"
-                align="right"
               />
             </PieChart>
           </ChartContainer>

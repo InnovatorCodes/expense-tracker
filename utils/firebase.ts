@@ -265,7 +265,7 @@ export const getRecentTransactions = async (userId: string): Promise<Transaction
       transactionsCollectionRef,
       orderBy("date", "desc"), // Order by date descending (most recent first)
       orderBy("createdAt", "desc"), // Then by creation timestamp for tie-breaking
-      limit(5) // Limit to the last 5 transactions
+      limit(4) // Limit to the last 5 transactions
     );
 
     const querySnapshot = await getDocs(q); // Use getDocs for a one-time fetch
@@ -355,89 +355,95 @@ export const getTopTransactionsByAmountForCurrentYear = async (
   }
 };
 
-export const getMonthlyCategorizedExpenses = async (
+/**
+ * Subscribes to real-time updates of monthly categorized expenses for a user.
+ * Aggregates expense transactions by category for the specified month.
+ *
+ * @param userId The ID of the user.
+ * @param year The year of the month to query.
+ * @param month The month (1-indexed, e.g., 6 for June).
+ * @param callback A function to be called with the categorized expenses whenever data changes.
+ * @returns A function to unsubscribe from the listener.
+ */
+export const subscribeToMonthlyCategorizedExpenses = (
   userId: string,
   year: number,
   month: number, // 1-indexed month
-): Promise<{ [key: string]: number }> => {
+  callback: (categorizedExpenses: { [key: string]: number }) => void
+) => {
   if (!userId) {
     console.error("userId is undefined or null");
-    return {};
+    callback({});
+    return () => {};
   }
 
   const transactionsCollectionRef = getUserTransactionsCollectionRef(userId);
 
   const startOfMonth = `${year}-${String(month).padStart(2, '0')}-01`;
-  const endOfMonthDate = new Date(year, month, 0);
+  const endOfMonthDate = new Date(year, month, 0); // Day 0 of next month is last day of current month
   const endOfMonth = `${year}-${String(month).padStart(2, '0')}-${String(endOfMonthDate.getDate()).padStart(2, '0')}`;
 
   const q = query(
     transactionsCollectionRef,
-    where("type", "==", "expense"), // Only fetch expenses
+    where("type", "==", "expense"),
     where("date", ">=", startOfMonth),
     where("date", "<=", endOfMonth),
-    orderBy("date", "asc") // Order by date, can be adjusted
+    orderBy("date", "asc") // Order by date for consistent snapshot results
   );
 
-  try {
-    const snapshot = await getDocs(q); // Use getDocs for one-time fetch
+  const unsubscribe = onSnapshot(q, (snapshot) => {
     const categorizedExpenses: { [key: string]: number } = {};
+
     snapshot.docs.forEach(doc => {
       const data = doc.data();
       const category = data.category || 'Other';
       const amount = parseFloat(data.amount) || 0;
-      if(amount>0){
-        if (categorizedExpenses[category]) {
-          categorizedExpenses[category] += amount;
-        } else {
-          categorizedExpenses[category] = amount;
-        }
+      if (categorizedExpenses[category]) {
+        categorizedExpenses[category] += amount;
+      } else {
+        categorizedExpenses[category] = amount;
       }
     });
-    return categorizedExpenses;
-  } catch (error) {
-    console.error("Firestore: Error fetching monthly categorized expenses:", error);
-    throw error; // Re-throw to be caught by the component
-  }
+
+    callback(categorizedExpenses);
+  }, (error) => {
+    console.error("Firestore: Error subscribing to monthly categorized expenses:", error.name, error.message, error.code);
+  });
+
+  return unsubscribe;
 };
 
-export interface DailyFinancialData {
-  date: string; // YYYY-MM-DD format
-  income: number;
-  expense: number;
-}
-
-export const getPastWeekIncomeExpenses = async (
+export const subscribeToPastWeekTransactions = (
   userId: string,
-  daysAgo: number = 7
-): Promise<DailyFinancialData[]> => {
+  daysAgo: number = 7,
+  callback: (data: DailyFinancialData[]) => void
+) => {
   if (!userId) {
     console.error("userId is undefined or null");
-    return [];
+    callback([]);
+    return () => {};
   }
 
-  try {
-    const transactionsCollectionRef = getUserTransactionsCollectionRef(userId);
+  const transactionsCollectionRef = getUserTransactionsCollectionRef(userId);
 
-    const today = new Date();
-    // Set to start of today (midnight)
-    today.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Set to start of today (midnight)
 
-    const startDate = new Date(today);
-    startDate.setDate(today.getDate() - (daysAgo - 1)); // Go back N-1 days to include today
+  const startDate = new Date(today);
+  startDate.setDate(today.getDate() - (daysAgo - 1)); // Go back N-1 days to include today
 
-    const startDateString = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
-    const endDateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-    // Query all transactions within the date range
-    const q = query(
-      transactionsCollectionRef,
-      where("date", ">=", startDateString),
-      where("date", "<=", endDateString),
-      orderBy("date", "asc") // Order by date to process chronologically
-    );
+  const startDateString = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
+  const endDateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
-    const querySnapshot = await getDocs(q);
+  const q = query(
+    transactionsCollectionRef,
+    where("date", ">=", startDateString),
+    where("date", "<=", endDateString),
+    orderBy("date", "asc")
+  );
 
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    
     // Initialize data structure for the last N days
     const dailyDataMap: { [key: string]: { income: number; expense: number } } = {};
     for (let i = 0; i < daysAgo; i++) {
@@ -447,10 +453,10 @@ export const getPastWeekIncomeExpenses = async (
       dailyDataMap[dateKey] = { income: 0, expense: 0 };
     }
 
-    // Aggregate data
-    querySnapshot.docs.forEach(doc => {
+    // Aggregate data from the snapshot
+    snapshot.docs.forEach(doc => {
       const data = doc.data();
-      const date = data.date; // Date is already in YYYY-MM-DD format
+      const date = data.date;
       const amount = parseFloat(data.amount) || 0;
       const type = data.type;
 
@@ -467,17 +473,25 @@ export const getPastWeekIncomeExpenses = async (
     const result: DailyFinancialData[] = Object.keys(dailyDataMap)
       .sort() // Sort keys (dates) to ensure chronological order
       .map(dateKey => ({
-        date: dateKey.slice(5), // Format to "MM-DD" for chart display
+        date: dateKey.slice(5), // MM-DD for chart X-axis
+        fullDate: dateKey,      // YYYY-MM-DD for Date object construction
         income: dailyDataMap[dateKey].income,
         expense: dailyDataMap[dateKey].expense,
       }));
-    return result;
-  } catch (error) {
-    console.error("Firestore: Error fetching daily income/expenses:", error);
-    return [];
-  }
+
+    callback(result);
+  }, (error) => {
+    console.error("Firestore: Error subscribing to daily income/expenses:", error.name, error.message, error.code);
+  });
+
+  return unsubscribe;
 };
 
+export interface DailyFinancialData {
+  date: string; // YYYY-MM-DD format
+  income: number;
+  expense: number;
+}
 
 /**
  * Adds a new transaction document (expense or income) to a user's transactions collection.

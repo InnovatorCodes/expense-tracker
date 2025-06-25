@@ -11,7 +11,6 @@ import BalanceCard from '@/components/balance-card';
 import { getUserDefaultCurrency } from '@/utils/firebase'; // Import the function to fetch default currency
 
 import { TransactionType } from '@/types/transaction'; // Import TransactionType
-
 // Mark as client component as it contains interactive elements and state
 
 

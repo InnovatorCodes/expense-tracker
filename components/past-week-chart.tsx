@@ -1,7 +1,7 @@
 // app/dashboard/components/IncomeExpenseBarChart.tsx
 "use client"; // This component needs to be a Client Component
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   BarChart,
   Bar,
@@ -10,9 +10,8 @@ import {
   CartesianGrid
 } from 'recharts';
 import { useSession } from 'next-auth/react'; // To get the user session
-import { getPastWeekIncomeExpenses, getUserDefaultCurrency } from '@/utils/firebase'; // Import new function
-import { Loader2, Info, RefreshCw } from 'lucide-react'; // For loading and info icons
-import { Button } from '@/components/ui/button'; // Assuming you have a Button component
+import { subscribeToPastWeekTransactions } from '@/utils/firebase'; // Import new function
+import { Loader2, Info } from 'lucide-react'; // For loading and info icons
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ChartConfig,
@@ -41,9 +40,18 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-// Helper to get currency symbol
-const getCurrencySymbol = (currencyCode: string) => {
-  switch (currencyCode) {
+
+export function PastWeekChart({currency}: {currency: string}) { // Renamed from IncomeExpenseBarChart to PastWeekChart as per your query
+  const { data: session, status } = useSession();
+  const userId = session?.user?.id;
+
+  const [chartData, setChartData] = useState<DailyFinancialData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [dateRangeLabel, setDateRangeLabel] = useState(''); // For displaying date range
+
+  const getCurrencySymbol = () => {
+  switch (currency) {
     case 'INR':
       return '₹';
     case 'USD':
@@ -53,73 +61,50 @@ const getCurrencySymbol = (currencyCode: string) => {
   }
 };
 
-export function PastWeekChart() { // Renamed from IncomeExpenseBarChart to PastWeekChart as per your query
-  const { data: session, status } = useSession();
-  const userId = session?.user?.id;
-
-  const [chartData, setChartData] = useState<DailyFinancialData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [currency, setCurrency] = useState('USD'); // User's default currency
-  const [dateRangeLabel, setDateRangeLabel] = useState(''); // For displaying date range
-  const [refreshTrigger, setRefreshTrigger] = useState(0); // State to trigger manual refresh
-
-  // Fetch the user's default currency
   useEffect(() => {
-    const fetchCurrency = async () => {
-      if (userId) {
-        const userCurrency = await getUserDefaultCurrency(userId);
-        if (userCurrency) {
-          setCurrency(userCurrency);
-        }
+    // If session is still loading or user is not available, handle early exit
+    if (status === 'loading' || !userId) {
+      setLoading(true); // Keep loading state if session is loading
+      if (status === 'unauthenticated' && !userId) {
+        setError("Please log in to view financial overview.");
+        setLoading(false); // Stop loading if unauthenticated
+      } else {
+        setError(""); // Clear previous error if userId becomes null while loading
       }
-    };
-    fetchCurrency();
-  }, [userId,refreshTrigger]);
+      return;
+    }
 
-  const fetchDailyData = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      if (userId && status === 'authenticated') {
-        const data = await getPastWeekIncomeExpenses(userId, 7); // Fetch last 7 days
+    setError(""); // Clear any previous errors if we're proceeding with a user
+    setLoading(true); // Set loading true while waiting for the first snapshot
+
+    console.log(`PastWeekChart: Setting up real-time listener for user: ${userId}`);
+
+    // Subscribe to daily income/expenses for the last 7 days
+    const unsubscribe = subscribeToPastWeekTransactions(
+      userId,
+      7,
+      (data) => {
         setChartData(data);
 
-        // Determine date range label
+        // Determine date range label based on the fetched data
         if (data.length > 0) {
-          const firstDate = new Date(new Date().getFullYear(), parseInt(data[0].date.split('-')[0]) - 1, parseInt(data[0].date.split('-')[1]));
-          const lastDate = new Date(new Date().getFullYear(), parseInt(data[data.length - 1].date.split('-')[0]) - 1, parseInt(data[data.length - 1].date.split('-')[1]));
+          const firstDate = new Date(data[0].date); // Use fullDate from the data
+          const lastDate = new Date(data[data.length - 1].date); // Use fullDate from the data
           
           const dateFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
           setDateRangeLabel(`${dateFormatter.format(firstDate)} - ${dateFormatter.format(lastDate)}`);
         } else {
           setDateRangeLabel('');
         }
-      } else if (status === 'unauthenticated' || !userId) {
-        setChartData([]);
-        setError("Please log in to view financial overview.");
-        setDateRangeLabel('');
+        setLoading(false); // Data received, stop loading
       }
-    } catch (err) {
-      console.error("Failed to fetch daily financial data:", err);
-      setError("Failed to load past week data.");
-      setChartData([]);
-      setDateRangeLabel('');
-    } finally {
-      setLoading(false);
-    }
-  }, [userId, status]); // Added refreshTrigger to dependencies
+    );
 
-  useEffect(() => {
-    // Only fetch if session status is not 'loading'
-    if (status !== 'loading') {
-      fetchDailyData();
-    }
-  }, [status, fetchDailyData]);
-
-  const handleRefreshClick = () => {
-    setRefreshTrigger(prev => prev + 1); // Increment to trigger fetchDailyData
-  };
+    // Cleanup function: unsubscribe when component unmounts or dependencies change
+    return () => {
+      unsubscribe();
+    };
+  }, [userId, status]); // Re-run effect if userId or auth status changes
 
   if (loading) {
     return (
@@ -149,16 +134,6 @@ export function PastWeekChart() { // Renamed from IncomeExpenseBarChart to PastW
           <CardTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">
             Last 7 Days Overview
           </CardTitle>
-          <Button
-            onClick={handleRefreshClick}
-            variant="outline"
-            size="icon"
-            className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-            disabled={loading || status === 'loading'}
-            aria-label="Refresh chart data"
-          >
-            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <RefreshCw className="h-5 w-5" />}
-          </Button>
         </div>
         <CardDescription className="text-gray-600 dark:text-gray-400">
           {dateRangeLabel}
@@ -187,7 +162,7 @@ export function PastWeekChart() { // Renamed from IncomeExpenseBarChart to PastW
                 tickLine={false}
                 axisLine={false}
                 className="text-xs dark:text-gray-300"
-                tickFormatter={(value) => `${getCurrencySymbol(currency)}${value}`} // Add currency symbol to Y-axis
+                tickFormatter={(value) => `${getCurrencySymbol()}${value}`} // Add currency symbol to Y-axis
               />
               <ChartTooltip
                 cursor={{ fill: 'rgba(0,0,0,0.1)' }}
@@ -196,9 +171,9 @@ export function PastWeekChart() { // Renamed from IncomeExpenseBarChart to PastW
                   formatter={(value,name) => {
                     let displayValue = '';
                     if (typeof value === 'number') {
-                      displayValue = `${name+": "+getCurrencySymbol(currency)}${value.toFixed(2)}`;
+                      displayValue = `${name+": "+getCurrencySymbol()}${value.toFixed(2)}`;
                     } else if (typeof value === 'string') {
-                      displayValue = `${name+": "+getCurrencySymbol(currency)}${value}`;
+                      displayValue = `${name+": "+getCurrencySymbol()}${value}`;
                     } 
                     const displayName = "";
                     return [displayValue, displayName];
