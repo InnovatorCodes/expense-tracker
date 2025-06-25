@@ -4,62 +4,54 @@
 // components/TopTransactionsByAmount.tsx
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { getTopTransactionsByAmountForCurrentYear, getUserDefaultCurrency } from '@/utils/firebase';
+import { subscribeToTopTransactions } from '@/utils/firebase';
 import { Transaction } from '@/types/transaction';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Info, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
 import Link from 'next/link';
 
-const TopTransactionsByAmount: React.FC = () => {
+const TopTransactionsByAmount = ({currency}: {currency:string}) => {
   const { data: session, status } = useSession();
   const userId = session?.user?.id;
 
   const [topTransactions, setTopTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
-  const [currency, setCurrency] = useState<string>('USD'); // User's default currency
 
-  // Fetch the user's default currency
   useEffect(() => {
-    const fetchCurrency = async () => {
-      if (userId) {
-        const userCurrency = await getUserDefaultCurrency(userId);
-        if (userCurrency) {
-          setCurrency(userCurrency);
-        }
-      }
-    };
-    fetchCurrency();
-  }, [userId]);
-
-
-  const fetchTopTransactions = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      if (userId && status === 'authenticated') {
-        const transactions = await getTopTransactionsByAmountForCurrentYear(userId, 3); // Get top 3
-        setTopTransactions(transactions);
-      } else if (status === 'unauthenticated') {
-        setTopTransactions([]);
+    // If session is still loading or user is not available, handle early exit
+    if (status === 'loading' || !userId) {
+      setLoading(true); // Keep loading state if session is loading
+      if (status === 'unauthenticated' && !userId) {
         setError("Please log in to view top transactions.");
+        setLoading(false); // Stop loading if unauthenticated
+      } else {
+        setError(""); // Clear previous error if userId becomes null while loading
       }
-    } catch (err) {
-      console.error("Failed to fetch top transactions:", err);
-      setError("Failed to load top transactions.");
-      setTopTransactions([]);
-    } finally {
-      setLoading(false);
+      return;
     }
-  }, [userId, status]);
 
-  useEffect(() => {
-    if (status !== 'loading') {
-      fetchTopTransactions();
-    }
-  }, [status, fetchTopTransactions]);
+    setError(""); // Clear any previous errors if we're proceeding with a user
+    setLoading(true); // Set loading true while waiting for the first snapshot
+
+    // Subscribe to top transactions (default limit is 3)
+    const unsubscribe = subscribeToTopTransactions(
+      userId,
+      (transactions) => {
+        setTopTransactions(transactions);
+        setLoading(false); // Data received, stop loading
+      },
+      3 // Limit to top 3 transactions
+    );
+
+    // Cleanup function: unsubscribe when component unmounts or dependencies change
+    return () => {
+      unsubscribe();
+    };
+  }, [userId, status]); // Re-run effect if userId or auth status changes
+
 
   const getCurrencySymbol = () => {
     switch (currency) {

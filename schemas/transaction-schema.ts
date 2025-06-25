@@ -3,7 +3,7 @@
 
 import * as z from 'zod/v4';
 
-export const addTransactionSchema = z.object({
+export const transactionSchema = z.object({
   name: z.string().min(1, "Name is required").max(100, "Name must not exceed 100 characters"),
   amount: z.number().min(0.01, "Amount must be greater than 0"), // Use z.coerce.number() for string-to-number conversion
   category: z.string().min(1, "Category is required").max(50, "Category must not exceed 50 characters"),

@@ -247,30 +247,36 @@ export const subscribeToMonthlyTotals = (
 };
 
 /**
- * Retrieves the last 5 transactions for a specific user.
- * This is a one-time fetch, not a real-time subscription.
+ * Subscribes to real-time updates of recent transactions for a user.
+ * Fetches the most recent `limitCount` transactions.
  *
- * @param userId The ID of the currently authenticated user.
- * @returns A promise that resolves to an array of the most recent 5 transactions.
+ * @param userId The ID of the user.
+ * @param limitCount The maximum number of recent transactions to return (default: 5).
+ * @param callback A function to be called with the fetched transactions whenever data changes.
+ * @returns A function to unsubscribe from the listener.
  */
-export const getRecentTransactions = async (userId: string): Promise<Transaction[]> => {
+export const subscribeToRecentTransactions = (
+  userId: string,
+  callback: (transactions: Transaction[]) => void,
+  limitCount: number = 4 // Default to 5 recent transactions
+) => {
+
   if (!userId) {
     console.error("userId is undefined or null");
-    return [];
+    callback([]);
+    return () => {}; // Return an empty unsubscribe function
   }
 
-  try {
-    const transactionsCollectionRef = getUserTransactionsCollectionRef(userId);
-    const q = query(
-      transactionsCollectionRef,
-      orderBy("date", "desc"), // Order by date descending (most recent first)
-      orderBy("createdAt", "desc"), // Then by creation timestamp for tie-breaking
-      limit(4) // Limit to the last 5 transactions
-    );
+  const transactionsCollectionRef = getUserTransactionsCollectionRef(userId);
+  const q = query(
+    transactionsCollectionRef,
+    orderBy("date", "desc"), // Order by date descending
+    orderBy("createdAt", "desc"), // Secondary sort for stable order
+    limit(limitCount) // Limit to the most recent transactions
+  );
 
-    const querySnapshot = await getDocs(q); // Use getDocs for a one-time fetch
-
-    const recentTransactions: Transaction[] = querySnapshot.docs.map(doc => {
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const fetchedTransactions: Transaction[] = snapshot.docs.map(doc => {
       const data = doc.data();
       const transaction: Transaction = {
         id: doc.id,
@@ -280,17 +286,17 @@ export const getRecentTransactions = async (userId: string): Promise<Transaction
         date: data.date,
         type: data.type,
         notes: data.notes || undefined,
-        createdAt: data.createdAt?.toDate() || new Date(), // Convert Firestore Timestamp to Date
+        createdAt: data.createdAt?.toDate() || new Date(),
       };
       return transaction;
     });
 
-    return recentTransactions;
-  } catch (error) {
-    console.error("Firestore: Error fetching recent transactions:", error);
-    // Depending on your error handling strategy, you might re-throw or return an empty array
-    return [];
-  }
+    callback(fetchedTransactions);
+  }, (error) => {
+    console.error("Firestore: onSnapshot listener error for recent transactions:", error.name, error.message, error.code);
+  });
+
+  return unsubscribe;
 };
 
 
@@ -487,6 +493,56 @@ export const subscribeToPastWeekTransactions = (
   return unsubscribe;
 };
 
+export const subscribeToTopTransactions = (
+  userId: string,
+  callback: (transactions: Transaction[]) => void,
+  limitCount: number = 3 // Default to 3 if not specified
+) => {
+  if (!userId) {
+    callback([]);
+    return () => {};
+  }
+
+  const transactionsCollectionRef = getUserTransactionsCollectionRef(userId);
+
+  const currentYear = new Date().getFullYear();
+  const startOfYear = `${currentYear}-01-01`;
+  const endOfYear = `${currentYear}-12-31`;
+
+  const q = query(
+    transactionsCollectionRef,
+    where("date", ">=", startOfYear),
+    where("date", "<=", endOfYear),
+    orderBy("amount", "desc"), // Order by amount descending
+    orderBy("createdAt", "desc"), // Secondary sort for stable order
+    limit(limitCount) // Limit to the specified number of transactions
+  );
+
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    console.log(`Firestore: Top transactions onSnapshot triggered! Docs count: ${snapshot.docs.length}`);
+    const fetchedTransactions: Transaction[] = snapshot.docs.map(doc => {
+      const data = doc.data();
+      const transaction: Transaction = {
+        id: doc.id,
+        name: data.name,
+        amount: parseFloat(data.amount) || 0,
+        category: data.category,
+        date: data.date,
+        type: data.type,
+        notes: data.notes || undefined,
+        createdAt: data.createdAt?.toDate() || new Date(),
+      };
+      return transaction;
+    });
+
+    callback(fetchedTransactions);
+  }, (error) => {
+    console.error("Firestore: onSnapshot listener error for top transactions:", error.name, error.message, error.code);
+  });
+
+  return unsubscribe;
+};
+
 export interface DailyFinancialData {
   date: string; // YYYY-MM-DD format
   income: number;
@@ -535,6 +591,53 @@ export const addTransaction = async (
     return docRef.id;
   } catch (e) {
     console.error("Error adding transaction and updating balance:", e);
+    throw e;
+  }
+};
+
+/**
+ * Updates an existing transaction and adjusts the user's balance accordingly.
+ * @param userId The ID of the user.
+ * @param transactionId The ID of the transaction to update.
+ * @param updatedData The partial data to update the transaction with.
+ * @param originalTransaction The original transaction object, needed to calculate balance adjustment.
+ */
+export const updateTransaction = async (
+  userId: string,
+  transactionId: string,
+  updatedData: Partial<Omit<Transaction, 'id' | 'userId' | 'createdAt'>>,
+  originalTransaction: Transaction // Pass original transaction for balance adjustment
+) => {
+  try {
+    const transactionDocRef = doc(getUserTransactionsCollectionRef(userId), transactionId);
+    const userDocRef = getUserDocRef(userId);
+
+    // Calculate balance adjustment
+    let balanceChange = 0;
+
+    // Determine the original value's impact
+    const originalAmountImpact = originalTransaction.type === 'income' ? originalTransaction.amount : -originalTransaction.amount;
+
+    const newAmount = typeof updatedData.amount === 'string' ? parseFloat(updatedData.amount) : updatedData.amount;
+    const finalNewAmount = newAmount !== undefined ? newAmount : originalTransaction.amount;
+
+    const newType = updatedData.type !== undefined ? updatedData.type : originalTransaction.type;
+    const newAmountImpact = newType === 'income' ? finalNewAmount : -finalNewAmount;
+
+    // The change in balance is (new impact) - (original impact)
+    balanceChange = newAmountImpact - originalAmountImpact;
+
+    // Perform the update
+    await updateDoc(transactionDocRef, updatedData);
+
+    // Update user balance
+    if (balanceChange !== 0) {
+      await updateDoc(userDocRef, {
+        currentBalance: increment(balanceChange),
+      });
+    }
+  } catch (e) {
+    console.error("Error updating transaction:", e);
     throw e;
   }
 };

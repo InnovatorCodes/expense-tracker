@@ -49,7 +49,7 @@ export default function DashboardPage() {
         <div className="flex flex-col gap-6">
           <BalanceCard currency={currency} />
           <RecentTransactions currency={currency} />
-          <TopTransactions />
+          <TopTransactions currency={currency} />
         </div>
         <div className="flex flex-col gap-6">
           <ExpenseChart currency={currency} />

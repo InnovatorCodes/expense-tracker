@@ -1,55 +1,53 @@
 // app/dashboard/components/RecentTransactions.tsx
 "use client"
 //import { ShoppingCart, Utensils, Car, Ellipsis } from 'lucide-react';
-import { Info, RefreshCw, Loader2, ArrowUpCircle, ArrowDownCircle } from 'lucide-react'; // Added RefreshCw and Loader2 icons
+import { Info, Loader2, ArrowUpCircle, ArrowDownCircle } from 'lucide-react'; // Added RefreshCw and Loader2 icons
 import { useSession } from 'next-auth/react';
 // Assuming getRecentTransactions is correctly imported from lib/firestore
-import { getRecentTransactions } from '@/utils/firebase'; // Corrected import path
+import { subscribeToRecentTransactions } from '@/utils/firebase'; // Corrected import path
 import Link from 'next/link';
-import { useState, useEffect, useCallback } from 'react'; // Added useCallback
+import { useState, useEffect } from 'react'; // Added useCallback
 import { Transaction } from '@/types/transaction';
-import { Button } from '@/components/ui/button'; // Import Button component
 
 const RecentTransactions = ({currency}: {currency:string}) => {
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
-  const [loadingTransactions, setLoadingTransactions] = useState(true); // Separate loading state for this component
-  const [error, setError] = useState<string | null>(null);
-  const [refreshTrigger, setRefreshTrigger] = useState(0); // State to trigger refresh
+  const [loading, setLoading] = useState(true); // Separate loading state for this component
+  const [error, setError] = useState("");
 
   const { data: session, status } = useSession();
   const userId = session?.user?.id;
 
-  // Use useCallback to memoize the fetch function and avoid unnecessary re-creations
-  const fetchTransactions = useCallback(async () => {
-    setLoadingTransactions(true);
-    setError(null);
-    try {
-      if (userId && status === 'authenticated') {
-        const transactions = await getRecentTransactions(userId);
-        setRecentTransactions(transactions || []);
-      } else if (status === 'unauthenticated') {
-        setRecentTransactions([]);
-        setError("Please log in to view recent transactions.");
-      }
-    } catch (err) {
-      console.error("Failed to fetch recent transactions:", err);
-      setError("Failed to load recent transactions.");
-      setRecentTransactions([]); // Clear transactions on error
-    } finally {
-      setLoadingTransactions(false);
-    }
-  }, [userId, status]); // Dependencies for useCallback
-
   useEffect(() => {
-    // Only fetch if session status is not 'loading'
-    if (status !== 'loading') {
-      fetchTransactions();
+    // If session is still loading or user is not available, handle early exit
+    if (status === 'loading' || !userId) {
+      setLoading(true); // Keep loading state if session is loading
+      if (status === 'unauthenticated' && !userId) {
+        setError("Please log in to view recent transactions.");
+        setLoading(false); // Stop loading if unauthenticated
+      } else {
+        setError(""); // Clear previous error if userId becomes null while loading
+      }
+      return;
     }
-  }, [status, fetchTransactions, refreshTrigger]); // Depend on status, fetchTransactions, and refreshTrigger
 
-  const handleRefreshClick = () => {
-    setRefreshTrigger(prev => (prev + 1)%2); // Increment to trigger useEffect
-  };
+    setError(""); // Clear any previous errors if we're proceeding with a user
+    setLoading(true); // Set loading true while waiting for the first snapshot
+
+
+    // Subscribe to recent transactions (default limit is 5)
+    const unsubscribe = subscribeToRecentTransactions(
+      userId,
+      (transactions) => {
+        setRecentTransactions(transactions || []);
+        setLoading(false); // Data received, stop loading
+      }
+    );
+
+    // Cleanup function: unsubscribe when component unmounts or dependencies change
+    return () => {
+      unsubscribe();
+    };
+  }, [userId, status]); // Re-run effect if userId or auth status changes. No need for refreshTrigger.
 
   const getCurrencySymbol = () => {
     switch (currency) {
@@ -68,16 +66,6 @@ const RecentTransactions = ({currency}: {currency:string}) => {
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Recent Transactions</h3>
         <div className="flex items-center space-x-2">
-          <Button
-            onClick={handleRefreshClick}
-            variant="outline"
-            size="icon"
-            className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-            disabled={loadingTransactions || status === 'loading'}
-            aria-label="Refresh transactions"
-          >
-            {loadingTransactions ? <Loader2 className="h-5 w-5 animate-spin" /> : <RefreshCw className="h-5 w-5" />}
-          </Button>
           <Link href="/transactions" className="text-sm font-medium text-indigo-600 hover:underline">
             View All
           </Link>
@@ -88,7 +76,7 @@ const RecentTransactions = ({currency}: {currency:string}) => {
           <div className="text-center p-4 bg-red-100 rounded-lg text-red-700 dark:bg-red-900/20 dark:text-red-300">
             <p>{error}</p>
           </div>
-        ) : loadingTransactions ? (
+        ) : loading ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
             <Loader2 className="h-8 w-8 animate-spin mb-3" />
             <p>Loading recent transactions...</p>

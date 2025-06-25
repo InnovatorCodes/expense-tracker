@@ -151,14 +151,14 @@ export function ExpenseChart({currency}: {currency: string}) {
   }
 
   return (
-    <Card className="flex flex-col bg-gray-800 shadow-xl rounded-lg">
+    <Card className="flex flex-col shadow-xl rounded-lg">
       <CardHeader className="items-center pb-0">
         <div className="flex justify-between w-full items-center">
-          <CardTitle className="text-xl font-bold text-gray-100">
+          <CardTitle className="text-xl font-bold ">
             Expenses for {currentMonthName} {new Date().getFullYear()}
           </CardTitle>
         </div>
-        <CardDescription className="text-gray-300">Categorized spending overview</CardDescription>
+        <CardDescription >Categorized spending overview</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0 px-4">
         {chartData.length === 0 ? (

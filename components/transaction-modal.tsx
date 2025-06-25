@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import TransactionForm from './transaction-form'; // Import the updated TransactionForm
+import TransactionForm from './add-transaction-form'; // Import the updated TransactionForm
 import { TransactionType } from '@/types/transaction'; // Import TransactionType
 
 interface TransactionModalProps {

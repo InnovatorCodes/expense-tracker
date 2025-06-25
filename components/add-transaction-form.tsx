@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/form";
 
 // Your Zod schema for transaction validation
-import { addTransactionSchema } from '@/schemas/transaction-schema';
+import { transactionSchema } from '@/schemas/transaction-schema';
 // Your Server Action for creating a transaction
 import { createTransaction } from '@/actions/transaction';
 // For displaying server messages
@@ -41,17 +41,17 @@ import { TransactionType } from '@/types/transaction'; // Import TransactionType
 // Define props for the TransactionForm
 interface TransactionFormProps {
   initialType?: TransactionType; // Optional: to pre-select 'expense' or 'income'
-  defaultCurrency?: string; // Optional: default currency code, e.g., 'INR', 'USD'
+  currency?: string; // Optional: default currency code, e.g., 'INR', 'USD'
   onSuccess: () => void; // Callback to handle success (e.g., close modal, show toast)
 }
 
-const TransactionForm: React.FC<TransactionFormProps> = ({ initialType = 'expense',defaultCurrency='INR' , onSuccess }) => {
+const TransactionForm: React.FC<TransactionFormProps> = ({ initialType = 'expense',currency='INR' , onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const form = useForm<z.infer<typeof addTransactionSchema>>({
-    resolver: zodResolver(addTransactionSchema),
+  const form = useForm<z.infer<typeof transactionSchema>>({
+    resolver: zodResolver(transactionSchema),
     defaultValues: {
       name: "",
       amount: 0, // Default to 0 for amount
@@ -67,7 +67,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ initialType = 'expens
   // Reset form values when initialType prop changes (e.g., switching between add expense/income)
 
 
-  const onSubmit = async (data: z.infer<typeof addTransactionSchema>) => {
+  const onSubmit = async (data: z.infer<typeof transactionSchema>) => {
     console.log("Submitting form with data:", data);
     setLoading(true);
     setError("");
@@ -100,8 +100,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ initialType = 'expens
     }
   };
 
-  const getCurrencySymbol = (currencyCode: string) => {
-    switch (currencyCode) {
+  const getCurrencySymbol = () => {
+    switch (currency) {
       case 'INR':
         return '₹';
       case 'USD':
@@ -136,7 +136,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ initialType = 'expens
               <FormControl>
                 <div className="relative flex items-center">
                   <span className="absolute left-3 text-gray-500 dark:text-gray-400">
-                    {getCurrencySymbol(defaultCurrency)}
+                    {getCurrencySymbol()}
                   </span>
                   <Input
                     type="number"

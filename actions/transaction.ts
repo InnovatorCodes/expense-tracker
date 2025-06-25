@@ -5,9 +5,9 @@
 
 import * as z from "zod/v4";
 import { auth } from "@/auth"; // Import the server-side auth function
-import { addTransaction } from "@/utils/firebase"; // Import Firestore utility
-import { addTransactionSchema } from "@/schemas/transaction-schema"; // Import Zod schema
-
+import { addTransaction,updateTransaction } from "@/utils/firebase"; // Import Firestore utility
+import { transactionSchema } from "@/schemas/transaction-schema"; // Import Zod schema
+import { Transaction } from "@/types/transaction";
 
 /**
  * Server Action to add a new transaction (expense or income) to Firestore.
@@ -17,7 +17,7 @@ import { addTransactionSchema } from "@/schemas/transaction-schema"; // Import Z
  * @param formData The FormData object submitted from the client form.
  * @returns An object indicating success or error.
  */
-export async function createTransaction(formData: z.infer<typeof addTransactionSchema>) {
+export async function createTransaction(formData: z.infer<typeof transactionSchema>) {
   const session = await auth(); // Get the authenticated user's session on the server
 
   if (!session?.user?.id) {
@@ -27,7 +27,7 @@ export async function createTransaction(formData: z.infer<typeof addTransactionS
 
   try {
     // Server-side validation using Zod
-    const validatedData = addTransactionSchema.parse(formData);
+    const validatedData = transactionSchema.parse(formData);
     if(!validatedData) {
       return { error: "Invalid transaction data provided." };
     }
@@ -46,3 +46,31 @@ export async function createTransaction(formData: z.infer<typeof addTransactionS
   }
 }
 
+export async function modifyTransaction(updatedData: z.infer<typeof transactionSchema>,originalTransaction: Transaction ) {
+  const session = await auth(); // Get the authenticated user's session on the server
+
+  if (!session?.user?.id) {
+    console.log(session?.user);
+    return { error: "You must be logged in to update a transaction." };
+  }
+
+  try {
+    // Server-side validation using Zod
+    const validatedData = transactionSchema.parse(updatedData);
+    if(!validatedData) {
+      return { error: "Invalid transaction data provided." };
+    }
+
+    // Add the transaction to Firestore
+    await updateTransaction(session.user.id, originalTransaction.id, updatedData, originalTransaction);
+
+    return { success: "Transaction added successfully!" };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      console.error("Server-side validation error");
+      return { error: "Validation failed. Please check your input." };
+    }
+    console.error("Error creating transaction:", error);
+    return { error: "Failed to add transaction. Please try again." };
+  }
+}
