@@ -17,7 +17,9 @@ import {
   increment,
   getDoc,
   setDoc,
-  where
+  where,
+  limit,
+  getDocs,
 } from "firebase/firestore";
 import { Transaction } from "@/types/transaction";
 
@@ -81,11 +83,9 @@ export const getUserDefaultCurrency = async (userId: string): Promise<string | u
     const docSnap = await getDoc(userDocRef);
     if (docSnap.exists()) {
       const data = docSnap.data();
-      console.log(`Firestore: Fetched default currency for user ${userId}:`, data?.defaultCurrency);
       return data?.defaultCurrency as string;
     } else {
-      console.log(`Firestore: User document for ${userId} does not exist or defaultCurrency not set.`);
-      return undefined;
+      return "INR"; // Default to INR if no currency is set
     }
   } catch (error) {
     console.error(`Firestore: Error fetching default currency for user ${userId}:`, error);
@@ -106,7 +106,6 @@ export const setUserDefaultCurrency = async (userId: string, currency: string) =
     // Use setDoc with merge: true to update only the defaultCurrency field
     // without overwriting other fields if the document already exists.
     await setDoc(userDocRef, { defaultCurrency: currency }, { merge: true });
-    console.log(`Firestore: Default currency for user ${userId} set to ${currency}.`);
   } catch (error) {
     console.error(`Firestore: Error setting default currency for user ${userId}:`, error);
     throw error; // Re-throw to handle in calling function
@@ -182,10 +181,8 @@ export const subscribeToBalance = (
   }
 
   const userDocRef = getUserDocRef(userId);
-  console.log("Firestore: Setting up onSnapshot listener for user balance:", userDocRef.path);
 
   const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
-    console.log("Firestore: Balance onSnapshot triggered! Doc exists:", docSnap.exists());
     if (docSnap.exists()) {
       // Safely cast and default to 0 if 'currentBalance' field is missing or not a number
       const balance = (docSnap.data()?.currentBalance as number) || 0;
@@ -219,19 +216,6 @@ export const subscribeToMonthlyTotals = (
   const endOfMonthDate = new Date(year, month, 0); // Day 0 of next month is last day of current month
   const endOfMonth = `${year}-${String(month).padStart(2, '0')}-${String(endOfMonthDate.getDate()).padStart(2, '0')}`;
 
-  // Query for transactions within the current month
-  // NOTE: This query with `where` clauses on 'date' and `orderBy` on 'date' and 'createdAt'
-  // might require a composite index in Firestore.
-  // Example Index (if you encounter 'The query requires an index' error):
-  // Collection ID: transactions
-  // Fields:
-  // - date (Ascending)
-  // - createdAt (Ascending)
-  // - __name__ (Ascending)
-  // AND/OR for type filters if you change to separate queries per type, e.g.:
-  // - type (Ascending)
-  // - date (Ascending)
-  // - createdAt (Ascending)
   const q = query(
     transactionsCollectionRef,
     where("date", ">=", startOfMonth),
@@ -260,6 +244,159 @@ export const subscribeToMonthlyTotals = (
   });
 
   return unsubscribe;
+};
+
+/**
+ * Retrieves the last 5 transactions for a specific user.
+ * This is a one-time fetch, not a real-time subscription.
+ *
+ * @param userId The ID of the currently authenticated user.
+ * @returns A promise that resolves to an array of the most recent 5 transactions.
+ */
+export const getRecentTransactions = async (userId: string): Promise<Transaction[]> => {
+  if (!userId) {
+    console.error("userId is undefined or null");
+    return [];
+  }
+
+  try {
+    const transactionsCollectionRef = getUserTransactionsCollectionRef(userId);
+    const q = query(
+      transactionsCollectionRef,
+      orderBy("date", "desc"), // Order by date descending (most recent first)
+      orderBy("createdAt", "desc"), // Then by creation timestamp for tie-breaking
+      limit(5) // Limit to the last 5 transactions
+    );
+
+    const querySnapshot = await getDocs(q); // Use getDocs for a one-time fetch
+
+    const recentTransactions: Transaction[] = querySnapshot.docs.map(doc => {
+      const data = doc.data();
+      const transaction: Transaction = {
+        id: doc.id,
+        name: data.name,
+        amount: parseFloat(data.amount) || 0,
+        category: data.category,
+        date: data.date,
+        type: data.type,
+        notes: data.notes || undefined,
+        createdAt: data.createdAt?.toDate() || new Date(), // Convert Firestore Timestamp to Date
+      };
+      return transaction;
+    });
+
+    return recentTransactions;
+  } catch (error) {
+    console.error("Firestore: Error fetching recent transactions:", error);
+    // Depending on your error handling strategy, you might re-throw or return an empty array
+    return [];
+  }
+};
+
+
+/**
+ * Retrieves the top N transactions for a specific user within the current year,
+ * ordered by amount in descending order, regardless of type (income/expense).
+ * This is a one-time fetch, not a real-time subscription.
+ *
+ * @param userId The ID of the currently authenticated user.
+ * @param limitCount The number of top transactions to retrieve (e.g., 3).
+ * @returns A promise that resolves to an array of top transactions.
+ */
+export const getTopTransactionsByAmountForCurrentYear = async (
+  userId: string,
+  limitCount: number = 3 // Default to 3 if not specified
+): Promise<Transaction[]> => {
+  if (!userId) {
+    console.error("userId is undefined or null");
+    return [];
+  }
+
+  try {
+    const transactionsCollectionRef = getUserTransactionsCollectionRef(userId);
+
+    // Get the current year's start and end dates in YYYY-MM-DD format
+    const currentYear = new Date().getFullYear();
+    const startOfYear = `${currentYear}-01-01`;
+    const endOfYear = `${currentYear}-12-31`;
+
+    const q = query(
+      transactionsCollectionRef,
+      where("date", ">=", startOfYear),
+      where("date", "<=", endOfYear),
+      orderBy("amount", "desc"), // Order by amount descending
+      orderBy("createdAt", "desc"), // Use createdAt as a tie-breaker for consistent results
+      limit(limitCount) // Limit to the specified number of transactions
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    const topTransactions: Transaction[] = querySnapshot.docs.map(doc => {
+      const data = doc.data();
+      const transaction: Transaction = {
+        id: doc.id,
+        name: data.name,
+        amount: parseFloat(data.amount) || 0,
+        category: data.category,
+        date: data.date,
+        type: data.type,
+        notes: data.notes || undefined,
+        createdAt: data.createdAt?.toDate() || new Date()
+      };
+      return transaction;
+    });
+    return topTransactions;
+  } catch (error) {
+    console.error("Firestore: Error fetching top transactions by amount:", error);
+    // IMPORTANT: If you get an "The query requires an index" error here,
+    // look for a link in your console and click it to create the composite index
+    // for (amount descending, createdAt descending) and (date range where clauses).
+    return [];
+  }
+};
+
+export const getMonthlyCategorizedExpenses = async (
+  userId: string,
+  year: number,
+  month: number, // 1-indexed month
+): Promise<{ [key: string]: number }> => {
+  if (!userId) {
+    console.error("userId is undefined or null");
+    return {};
+  }
+
+  const transactionsCollectionRef = getUserTransactionsCollectionRef(userId);
+
+  const startOfMonth = `${year}-${String(month).padStart(2, '0')}-01`;
+  const endOfMonthDate = new Date(year, month, 0);
+  const endOfMonth = `${year}-${String(month).padStart(2, '0')}-${String(endOfMonthDate.getDate()).padStart(2, '0')}`;
+
+  const q = query(
+    transactionsCollectionRef,
+    where("type", "==", "expense"), // Only fetch expenses
+    where("date", ">=", startOfMonth),
+    where("date", "<=", endOfMonth),
+    orderBy("date", "asc") // Order by date, can be adjusted
+  );
+
+  try {
+    const snapshot = await getDocs(q); // Use getDocs for one-time fetch
+    const categorizedExpenses: { [key: string]: number } = {};
+    snapshot.docs.forEach(doc => {
+      const data = doc.data();
+      const category = data.category || 'Other';
+      const amount = parseFloat(data.amount) || 0;
+      if (categorizedExpenses[category]) {
+        categorizedExpenses[category] += amount;
+      } else {
+        categorizedExpenses[category] = amount;
+      }
+    });
+    return categorizedExpenses;
+  } catch (error) {
+    console.error("Firestore: Error fetching monthly categorized expenses:", error);
+    throw error; // Re-throw to be caught by the component
+  }
 };
 
 /**
@@ -301,7 +438,6 @@ export const addTransaction = async (
       });
     }
 
-    console.log("Transaction written with ID:", docRef.id, "and balance updated.");
     return docRef.id;
   } catch (e) {
     console.error("Error adding transaction and updating balance:", e);

@@ -3,10 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react'; // Auth.js client provider
 import BalanceCard from "@/components/balance-card";
-import RecentTransactions from "@/components/RecentTransactions";
-import { ExpenseChart } from "@/components/ExpenseChart";
+import RecentTransactions from "@/components/recent-transactions";
+import { ExpenseChart } from "@/components/expense-chart";
 import { PastWeekChart } from "@/components/PastWeekChart";
-import TopTransactions from "@/components/TopTransactions";
+import TopTransactions from "@/components/top-transactions";
 import { getUserDefaultCurrency } from '@/utils/firebase';
 
 export default function DashboardPage() {
@@ -32,11 +32,11 @@ export default function DashboardPage() {
       <div className="grid grid-cols-[repeat(auto-fit,minmax(400px,1fr))] gap-6">
         <div className="flex flex-col gap-6">
           <BalanceCard currency={currency} />
-          <RecentTransactions />
+          <RecentTransactions currency={currency} />
           <TopTransactions />
         </div>
         <div className="flex flex-col gap-6">
-          <ExpenseChart />
+          <ExpenseChart currency={currency} />
           <PastWeekChart />
         </div>
       </div>

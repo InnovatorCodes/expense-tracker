@@ -74,7 +74,7 @@ const BalanceCard = ({currency}: {currency:string}) => {
       <Card className="dark:bg-gray-800">
         <CardContent className="p-6 text-center text-gray-500 dark:text-gray-400">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          Loading transactions...
+          Loading Current Balance...
         </CardContent>
       </Card>
     );
