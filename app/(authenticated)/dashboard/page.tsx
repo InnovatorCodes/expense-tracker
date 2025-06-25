@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react'; // Auth.js client provider
 import BalanceCard from "@/components/balance-card";
 import RecentTransactions from "@/components/recent-transactions";
 import { ExpenseChart } from "@/components/expense-chart";
-import { PastWeekChart } from "@/components/PastWeekChart";
+import { PastWeekChart } from "@/components/past-week-chart";
 import TopTransactions from "@/components/top-transactions";
 import { getUserDefaultCurrency } from '@/utils/firebase';
 

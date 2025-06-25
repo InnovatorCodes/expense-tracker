@@ -386,10 +386,12 @@ export const getMonthlyCategorizedExpenses = async (
       const data = doc.data();
       const category = data.category || 'Other';
       const amount = parseFloat(data.amount) || 0;
-      if (categorizedExpenses[category]) {
-        categorizedExpenses[category] += amount;
-      } else {
-        categorizedExpenses[category] = amount;
+      if(amount>0){
+        if (categorizedExpenses[category]) {
+          categorizedExpenses[category] += amount;
+        } else {
+          categorizedExpenses[category] = amount;
+        }
       }
     });
     return categorizedExpenses;
@@ -398,6 +400,84 @@ export const getMonthlyCategorizedExpenses = async (
     throw error; // Re-throw to be caught by the component
   }
 };
+
+export interface DailyFinancialData {
+  date: string; // YYYY-MM-DD format
+  income: number;
+  expense: number;
+}
+
+export const getPastWeekIncomeExpenses = async (
+  userId: string,
+  daysAgo: number = 7
+): Promise<DailyFinancialData[]> => {
+  if (!userId) {
+    console.error("userId is undefined or null");
+    return [];
+  }
+
+  try {
+    const transactionsCollectionRef = getUserTransactionsCollectionRef(userId);
+
+    const today = new Date();
+    // Set to start of today (midnight)
+    today.setHours(0, 0, 0, 0);
+
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() - (daysAgo - 1)); // Go back N-1 days to include today
+
+    const startDateString = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
+    const endDateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    // Query all transactions within the date range
+    const q = query(
+      transactionsCollectionRef,
+      where("date", ">=", startDateString),
+      where("date", "<=", endDateString),
+      orderBy("date", "asc") // Order by date to process chronologically
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    // Initialize data structure for the last N days
+    const dailyDataMap: { [key: string]: { income: number; expense: number } } = {};
+    for (let i = 0; i < daysAgo; i++) {
+      const d = new Date(startDate);
+      d.setDate(startDate.getDate() + i);
+      const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      dailyDataMap[dateKey] = { income: 0, expense: 0 };
+    }
+
+    // Aggregate data
+    querySnapshot.docs.forEach(doc => {
+      const data = doc.data();
+      const date = data.date; // Date is already in YYYY-MM-DD format
+      const amount = parseFloat(data.amount) || 0;
+      const type = data.type;
+
+      if (dailyDataMap[date]) { // Ensure date exists in our range
+        if (type === 'income') {
+          dailyDataMap[date].income += amount;
+        } else if (type === 'expense') {
+          dailyDataMap[date].expense += amount;
+        }
+      }
+    });
+
+    // Convert map to sorted array
+    const result: DailyFinancialData[] = Object.keys(dailyDataMap)
+      .sort() // Sort keys (dates) to ensure chronological order
+      .map(dateKey => ({
+        date: dateKey.slice(5), // Format to "MM-DD" for chart display
+        income: dailyDataMap[dateKey].income,
+        expense: dailyDataMap[dateKey].expense,
+      }));
+    return result;
+  } catch (error) {
+    console.error("Firestore: Error fetching daily income/expenses:", error);
+    return [];
+  }
+};
+
 
 /**
  * Adds a new transaction document (expense or income) to a user's transactions collection.

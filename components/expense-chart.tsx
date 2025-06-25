@@ -76,18 +76,33 @@ export function ExpenseChart({currency}: {currency: string}) {
       try {
         // Use the one-time fetch function
         const categorizedExpenses = await getMonthlyCategorizedExpenses(userId, currentYear, currentMonth);
-
+        const categoryEntries = Object.entries(categorizedExpenses);
+        categoryEntries.sort(([, amountA], [, amountB]) => amountB - amountA);
+        const topCategories: CategoryExpenseData[] = [];
+        let otherAmount = 0;
+         const maxVisibleCategories = 9;
         // Transform the fetched data into chartData and chartConfig
-        const newChartData: CategoryExpenseData[] = Object.entries(categorizedExpenses)
-          .map(([category, amount], index) => ({
-            name: category,
-            amount: amount,
-            fill: COLORS[index % COLORS.length], // Assign a color from the COLORS array
-          }))
-          .filter(item => item.amount > 0); // Only include categories with amount > 0
+        categoryEntries.forEach(([category, amount], index) => {
+          if (index < maxVisibleCategories) {
+            topCategories.push({
+              name: category,
+              amount: amount,
+              fill: COLORS[index % COLORS.length], // Assign a color
+            });
+          } else {
+            otherAmount += amount; // Sum remaining into 'Other'
+          }
+        });
+        if (otherAmount > 0) {
+          topCategories.push({
+            name: "Other",
+            amount: otherAmount,
+            fill: COLORS[maxVisibleCategories % COLORS.length], // Assign a color for 'Other'
+          });
+        }
 
         // Create chartConfig dynamically
-        const newChartConfig: ChartConfig = newChartData.reduce((acc, item) => {
+        const newChartConfig: ChartConfig = topCategories.reduce((acc, item) => {
           acc[item.name] = {
             label: item.name,
             color: item.fill,
@@ -95,7 +110,7 @@ export function ExpenseChart({currency}: {currency: string}) {
           return acc;
         }, {} as ChartConfig);
 
-        setChartData(newChartData);
+        setChartData(topCategories);
         setChartConfig(newChartConfig);
       } catch (err) {
         console.error("ExpenseChart: Error fetching categorized expenses:", err);
