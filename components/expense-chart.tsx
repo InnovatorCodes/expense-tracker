@@ -162,7 +162,7 @@ export function ExpenseChart({currency}: {currency: string}) {
       </CardHeader>
       <CardContent className="flex-1 pb-0 px-4">
         {chartData.length === 0 ? (
-          <div className="text-center p-8 text-gray-400 dark:text-gray-500 bg-gray-700 rounded-md m-4">
+          <div className="flex flex-col items-center p-8 text-gray-400 dark:text-gray-500 bg-gray-700 rounded-md m-4">
             <Info className="h-8 w-auto mb-3" />
             <p className="font-semibold">No expenses recorded for this month.</p>
             <p className="text-sm">Add some transactions to see your spending breakdown!</p>

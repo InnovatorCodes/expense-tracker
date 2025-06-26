@@ -8,8 +8,8 @@ import { ExpenseChart } from "@/components/expense-chart";
 import { PastWeekChart } from "@/components/past-week-chart";
 import TopTransactions from "@/components/top-transactions";
 import { getUserDefaultCurrency } from '@/utils/firebase';
-import FloatingActionButton from '@/components/floating-action-button';
-import TransactionModal from '@/components/transaction-modal';
+import {TransactionFloatingButton} from '@/components/floating-action-button';
+import TransactionModal from '@/components/add-transaction-modal';
 import { TransactionType } from '@/types/transaction'; // Import TransactionType
 
 export default function DashboardPage() {
@@ -56,12 +56,13 @@ export default function DashboardPage() {
           <PastWeekChart currency={currency} />
         </div>
       </div>
-      <FloatingActionButton onAddTransaction={handleAddTransactionClick} />
+      <TransactionFloatingButton onAddTransaction={handleAddTransactionClick} />
       <TransactionModal 
         isOpen={isModalOpen}
         onOpenChange={setIsModalOpen}
         onSuccess={handleTransactionSuccess}
         initialType={selectedTransactionType} 
+        currency={currency}
       />
     </section>
   );

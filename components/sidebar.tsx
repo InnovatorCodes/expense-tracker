@@ -1,6 +1,7 @@
 // app/dashboard/components/Sidebar.tsx
 "use client";
-import { Home, BarChart2, DollarSign, Settings, HelpCircle } from 'lucide-react';
+import { Home, DollarSign, Settings, HelpCircle } from 'lucide-react';
+import { BsPiggyBank } from "react-icons/bs";
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 
@@ -8,17 +9,17 @@ const Sidebar = () => {
   const pathname = usePathname();
   const menuItems = [
     { icon: <Home size={30} />, name: 'Dashboard', href: '/dashboard' },
-    { icon: <BarChart2 size={30} />, name: 'Analytics', href: '/analytics' },
     { icon: <DollarSign size={30} />, name: 'Transactions' , href: '/transactions' },
+    { icon: <BsPiggyBank size={30} />, name: 'Budgets', href: '/budgets' },
     { icon: <Settings size={30} />, name: 'Settings', href: '/settings' },
     { icon: <HelpCircle size={30} />, name: 'Help', href: '/help' },
   ];
 
   return (
-    <aside className="w-sm bg-white dark:bg-gray-800 p-6 flex-col hidden sm:flex">
+    <aside className="w-sm bg-white dark:bg-gray-800 p-6 pt-12 flex-col hidden sm:flex">
       <div className="flex items-center gap-2 mb-10">
-        <DollarSign className="text-indigo-500" size={32} />
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">SpendSense</h1>
+        <DollarSign className="text-indigo-500" size={40} />
+        <h1 className="text-4xl font-bold text-gray-800 dark:text-white">SpendSense</h1>
       </div>
       <nav className="flex-1">
         <ul className='flex flex-col  gap-4'>

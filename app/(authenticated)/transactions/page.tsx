@@ -4,8 +4,8 @@
 
 import React, {useEffect,useState} from 'react';
 import { useSession } from 'next-auth/react';
-import FloatingActionButton from '@/components/floating-action-button'; // New FAB component
-import TransactionModal from '@/components/transaction-modal'; // New Modal component
+import {TransactionFloatingButton} from '@/components/floating-action-button'; // New FAB component
+import TransactionModal from '@/components/add-transaction-modal'; // New Modal component
 import TransactionList from '@/components/transactions-list';
 import BalanceCard from '@/components/balance-card';
 import { getUserDefaultCurrency } from '@/utils/firebase'; // Import the function to fetch default currency
@@ -52,7 +52,7 @@ const TransactionsPage: React.FC = () => {
       <BalanceCard currency={currency} />
       <TransactionList currency={currency} />
       {/* Floating Action Button */}
-      <FloatingActionButton onAddTransaction={handleAddTransactionClick} />
+      <TransactionFloatingButton onAddTransaction={handleAddTransactionClick} />
 
       {/* Transaction Modal (conditionally rendered) */}
       <TransactionModal
@@ -60,6 +60,7 @@ const TransactionsPage: React.FC = () => {
         onOpenChange={setIsModalOpen}
         initialType={selectedTransactionType}
         onSuccess={handleTransactionSuccess}
+        currency={currency}
       />
     </div>
   );

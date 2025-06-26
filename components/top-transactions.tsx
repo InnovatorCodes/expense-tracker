@@ -9,7 +9,8 @@ import { useSession } from 'next-auth/react';
 import { subscribeToTopTransactions } from '@/utils/firebase';
 import { Transaction } from '@/types/transaction';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Info, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
+import { Loader2, Info} from 'lucide-react';
+import { categoryIcons } from '@/utils/categories';
 import Link from 'next/link';
 
 const TopTransactionsByAmount = ({currency}: {currency:string}) => {
@@ -103,22 +104,20 @@ const TopTransactionsByAmount = ({currency}: {currency:string}) => {
           </div>
         ) : (
           <div className="space-y-3">
-            {topTransactions.map((t) => (
+            {topTransactions.map((t) => {
+              const Icon=categoryIcons[t.category]
+              return (
               <div
                 key={t.id}
-                className="flex items-center justify-between p-3 rounded-lg shadow-sm border
-                  bg-gray-50 dark:bg-gray-700 border-gray-100 dark:border-gray-600"
+                className={`flex items-center justify-between p-3 rounded-lg shadow-sm border
+                  bg-gray-50 dark:bg-gray-700 border-gray-100 dark:border-gray-600 
+                  ${t.type === 'income'
+                      ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                      : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                    }`}
               >
                 <div className="flex items-center gap-4">
-                  {t.type === 'income' ? (
-                    <div className="p-2 bg-green-200 dark:bg-green-800 rounded-full">
-                      <ArrowUpCircle className="text-green-600 dark:text-green-300" size={20} />
-                    </div>
-                  ) : (
-                    <div className="p-2 bg-red-50 dark:bg-red-800/70 rounded-full">
-                      <ArrowDownCircle className="text-red-600 dark:text-red-300" size={20} />
-                    </div>
-                  )}
+                  <Icon />
                   <div>
                     <p className="font-semibold text-gray-800 dark:text-white">{t.name}</p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -135,13 +134,9 @@ const TopTransactionsByAmount = ({currency}: {currency:string}) => {
                     {getCurrencySymbol()}
                     {t.amount.toFixed(2)}
                   </p>
-                  {/* Optional: Ellipsis/More options button */}
-                  {/* <Button variant="ghost" size="icon" className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
-                    <Ellipsis size={18} />
-                  </Button> */}
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         )}
       </CardContent>

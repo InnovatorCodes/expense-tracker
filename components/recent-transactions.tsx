@@ -1,13 +1,14 @@
 // app/dashboard/components/RecentTransactions.tsx
 "use client"
 //import { ShoppingCart, Utensils, Car, Ellipsis } from 'lucide-react';
-import { Info, Loader2, ArrowUpCircle, ArrowDownCircle } from 'lucide-react'; // Added RefreshCw and Loader2 icons
+import { Info, Loader2 } from 'lucide-react'; // Added RefreshCw and Loader2 icons
 import { useSession } from 'next-auth/react';
 // Assuming getRecentTransactions is correctly imported from lib/firestore
 import { subscribeToRecentTransactions } from '@/utils/firebase'; // Corrected import path
 import Link from 'next/link';
 import { useState, useEffect } from 'react'; // Added useCallback
 import { Transaction } from '@/types/transaction';
+import { categoryIcons } from '@/utils/categories';
 
 const RecentTransactions = ({currency}: {currency:string}) => {
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
@@ -89,18 +90,16 @@ const RecentTransactions = ({currency}: {currency:string}) => {
           </div>
         ) : (
           <div className="space-y-4 w-full">
-            {recentTransactions.map((t) => (
-              <div key={t.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-700 shadow-sm border border-gray-100 dark:border-gray-600 w-full">
+            {recentTransactions.map((t) => {
+              const Icon=categoryIcons[t.category]
+              return (
+              <div key={t.id} className={`flex items-center justify-between p-3 rounded-lg shadow-sm border w-full 
+                ${t.type === 'income'
+                      ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                      : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                    }`}>
                 <div className="flex items-center gap-4">
-                    {t.type === 'income' ? (
-                        <div className="p-2 bg-green-200 dark:bg-green-800 rounded-full">
-                            <ArrowUpCircle className="text-green-600 dark:text-green-300" size={20}/>
-                        </div>
-                    ) : (
-                        <div className="p-2  bg-red-50 dark:bg-red-800/70 rounded-full">
-                            <ArrowDownCircle className="text-red-600 dark:text-red-300" size={20}/>
-                        </div>
-                    )}
+                    <Icon />
                     <div>
                         <p className="font-semibold text-gray-800 dark:text-white">{t.name}</p>
                         <p className="text-sm text-gray-500 dark:text-gray-400">{t.category} &bull; {new Date(t.date).toLocaleDateString()}</p>
@@ -118,7 +117,7 @@ const RecentTransactions = ({currency}: {currency:string}) => {
                     </button> */}
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         )}
       </div>

@@ -10,7 +10,7 @@ interface FloatingActionButtonProps {
   onAddTransaction: (type: TransactionType) => void; // Callback to open form with specific type
 }
 
-const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({ onAddTransaction }) => {
+export const TransactionFloatingButton: React.FC<FloatingActionButtonProps> = ({ onAddTransaction }) => {
   const [showOptions, setShowOptions] = useState(false);
 
   const toggleOptions = () => {
@@ -53,4 +53,3 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({ onAddTransa
   );
 };
 
-export default FloatingActionButton;

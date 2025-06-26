@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form';
 import { Transaction } from '@/types/transaction';
 import { transactionSchema } from '@/schemas/transaction-schema';
 import { Button } from '@/components/ui/button';
+import { categoryIcons } from '@/utils/categories';
 import {
   Dialog,
   DialogContent,
@@ -32,10 +33,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { FormError } from './form-error';
-import { FormSuccess } from './form-success';
-import { Loader2 } from 'lucide-react';
-//import { toast } from 'sonner'; 
+import { Loader2, Wallet } from 'lucide-react';
+import { toast } from 'sonner'; 
 import { modifyTransaction } from '@/actions/transaction';
 
 interface EditTransactionModalProps {
@@ -46,49 +45,53 @@ interface EditTransactionModalProps {
   currency: string; // Pass the user's default currency
 }
 
-/*const transactionCategories = [
-  'Food', 'Transport', 'Shopping', 'Utilities', 'Rent', 'Salary', 'Investments',
-  'Health', 'Education', 'Entertainment', 'Bills', 'Groceries', 'Travel', 'Other'
-];*/
+const expenseCategories = [
+  'Food', 'Transport', 'Shopping', 'Utilities', 'Rent', 'Health', 'Education',
+  'Entertainment', 'Bills', 'Groceries', 'Travel', 'Other Expense'
+];
+
+const incomeCategories = [
+  'Salary', 'Freelance', 'Investments', 'Gift', 'Refund', 'Other Income'
+];
+
 
 const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
   isOpen,
   onClose,
   transaction,
   onSave,
-  currency
+  currency,
 }) => {
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
-    const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
 
-    const form = useForm<z.infer<typeof transactionSchema>>({
-      resolver: zodResolver(transactionSchema),
-      defaultValues: {
-        name: "",
-        amount: 0,
-        type: "expense",
-        category: "",
-        // Format date for input[type="date"] (YYYY-MM-DD)
-        date: new Date().toISOString().split('T')[0], // Assuming  is already in 'YYYY-MM-DD' string format
-        notes: "",
-      },
-    });
+  const form = useForm<z.infer<typeof transactionSchema>>({
+    resolver: zodResolver(transactionSchema),
+    defaultValues: {
+      name: "",
+      amount: 0,
+      type: "expense",
+      category: "",
+      // Format date for input[type="date"] (YYYY-MM-DD)
+      date: new Date().toISOString().split('T')[0], // Assuming  is already in 'YYYY-MM-DD' string format
+      notes: "",
+    },
+  });
 
-    useEffect(()=>{
-      setError("");
-      setSuccess("");
-      form.reset({
-        name: transaction?.name,
-        amount: transaction?.amount,
-        date: transaction?.date,
-        category: transaction?.category,
-        type: transaction?.type,
-        notes: transaction?.notes
-      })
-    },[form,transaction])
+  const transactionType = form.watch("type");
+  const categoriesToShow = transactionType === 'expense' ? expenseCategories : incomeCategories;
 
-    const getCurrencySymbol = () => {
+  useEffect(()=>{
+    form.reset({
+      name: transaction?.name,
+      amount: transaction?.amount,
+      date: transaction?.date,
+      category: transaction?.category,
+      type: transaction?.type,
+      notes: transaction?.notes
+    })
+  },[form,transaction])
+
+  const getCurrencySymbol = () => {
     switch (currency) {
       case 'INR':
         return '₹';
@@ -101,8 +104,6 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
 
     const onSubmit = async (data: z.infer<typeof transactionSchema>) => {
         setLoading(true);
-        setError("");
-        setSuccess("");
         form.clearErrors(); // Clear client-side errors
     
         if(transaction){
@@ -111,12 +112,10 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
       
             if (result.error) {
               setLoading(false);
-              setSuccess("");
-              setError(result.error);
+              toast.error(result.error);
             } else if (result.success) {
               setLoading(false);
-              setError("");
-              setSuccess(result.success);
+              toast.success(result.success);
               form.reset({ // Reset form to default values on success
                 name: "",
                 category: "",
@@ -128,7 +127,7 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
             }
           } catch (e) {
             console.error("Failed to submit form:", e);
-            setError("An unexpected error occurred.");
+            toast.error("An unexpected error occurred.");
           }
         }
       };
@@ -188,11 +187,31 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                 name="category"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Category</FormLabel>
-                    <FormControl>
-                        <Input placeholder="e.g., Food, Utilities" {...field} className="dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600" />
-                    </FormControl>
-                    <FormMessage />
+                      <FormLabel>Category</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value || ""} disabled={!transactionType}>
+                        <FormControl>
+                          <SelectTrigger className="dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600">
+                            <SelectValue placeholder={transactionType ? `Select ${transactionType} category` : "Select a type first"} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 max-h-48 overflow-y-auto">
+                          {transactionType && categoriesToShow.map((category) => {
+                            const Icon = categoryIcons[category] || Wallet; // Fallback icon
+                            return (
+                              <SelectItem key={category} value={category}>
+                                <div className="flex items-center gap-2">
+                                  <Icon className="h-4 w-4" />
+                                  <span>{category}</span>
+                                </div>
+                              </SelectItem>
+                            );
+                          })}
+                          {!transactionType && (
+                            <SelectItem value="" disabled>Please select a transaction type first.</SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
                     </FormItem>
                 )}
                 />
@@ -215,7 +234,10 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Type</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={(value: "income" | "expense")=>{
+                      field.onChange(value)
+                      form.setValue("category",value)
+                    }} defaultValue={field.value}>
                         <FormControl>
                         <SelectTrigger className="dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600">
                             <SelectValue placeholder="Select type" />
@@ -243,9 +265,6 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                     </FormItem>
                 )}
                 />
-
-                <FormError message={error} />
-                <FormSuccess message={success} />
 
                 <Button type="submit" disabled={loading} className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-white font-semibold py-2 rounded-md transition-colors duration-200">
                 {loading ? (

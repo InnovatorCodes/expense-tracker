@@ -11,8 +11,10 @@ import { Transaction } from '@/types/transaction'; // Import the Transaction int
 import EditTransactionModal from './edit-transaction-form';
 // Shadcn/ui components
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {Trash2, Info,Loader2,Edit } from 'lucide-react'
 import { Button } from "@/components/ui/button";
-import { Trash2, ArrowUpCircle, ArrowDownCircle, Info,Loader2,Edit } from 'lucide-react'; // Icons for delete, income, expense, info
+import { Toaster } from 'sonner';
+import { categoryIcons } from '@/utils/categories';
 
 
 const TransactionList: React.FC<{currency: string}> = ({currency}) => {
@@ -114,7 +116,9 @@ const TransactionList: React.FC<{currency: string}> = ({currency}) => {
             </div>
           ) : (
             <ul className="space-y-3">
-              {transactions.map((transaction) => (
+              {transactions.map((transaction) => {
+                const Icon=categoryIcons[transaction.category];
+                return(
                 <li
                   key={transaction.id}
                   className={`flex items-center justify-between p-4 rounded-lg shadow-sm border
@@ -125,11 +129,7 @@ const TransactionList: React.FC<{currency: string}> = ({currency}) => {
                     transition-all duration-200 ease-in-out hover:shadow-md`}
                 >
                   <div className="flex items-center space-x-4">
-                    {transaction.type === 'income' ? (
-                      <ArrowUpCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
-                    ) : (
-                      <ArrowDownCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
-                    )}
+                    <Icon />
                     <div className="flex flex-col">
                       <p className="font-semibold text-gray-900 dark:text-gray-50 text-lg">
                         {transaction.name}
@@ -177,7 +177,7 @@ const TransactionList: React.FC<{currency: string}> = ({currency}) => {
                     </Button>
                   </div>
                 </li>
-              ))}
+              )})}
             </ul>
           )}
         </CardContent>
@@ -189,6 +189,7 @@ const TransactionList: React.FC<{currency: string}> = ({currency}) => {
       onSave={handleTransactionSaved}
       currency={currency}
        />
+      <Toaster />
     </>
   );
 };

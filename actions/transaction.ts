@@ -64,13 +64,13 @@ export async function modifyTransaction(updatedData: z.infer<typeof transactionS
     // Add the transaction to Firestore
     await updateTransaction(session.user.id, originalTransaction.id, updatedData, originalTransaction);
 
-    return { success: "Transaction added successfully!" };
+    return { success: "Transaction updated successfully!" };
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error("Server-side validation error");
       return { error: "Validation failed. Please check your input." };
     }
-    console.error("Error creating transaction:", error);
-    return { error: "Failed to add transaction. Please try again." };
+    console.error("Error updating transaction:", error);
+    return { error: "Failed to update transaction. Please try again." };
   }
 }

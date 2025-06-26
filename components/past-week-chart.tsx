@@ -32,14 +32,13 @@ interface DailyFinancialData {
 const chartConfig = {
   income: {
     label: "Income",
-    color: "var(--chart-2)", // Use HSL for Tailwind compatibility
+    color: "var(--destructive)", // Use HSL for Tailwind compatibility
   },
   expense: {
     label: "Expense",
     color: "var(--destructive)", // Use HSL for Tailwind compatibility
   },
 } satisfies ChartConfig;
-
 
 export function PastWeekChart({currency}: {currency: string}) { // Renamed from IncomeExpenseBarChart to PastWeekChart as per your query
   const { data: session, status } = useSession();
@@ -156,7 +155,7 @@ export function PastWeekChart({currency}: {currency: string}) { // Renamed from 
                 tickMargin={10}
                 axisLine={false}
                 className="text-xs dark:text-gray-300"
-                // tickFormatter={(value) => value.slice(0, 5)} // Example: "MM-DD"
+                tickFormatter={(value) => value.slice(3, 5)+'/'+value.slice(0,2)} // Example: "MM-DD"
               />
               <YAxis
                 tickLine={false}
@@ -190,7 +189,7 @@ export function PastWeekChart({currency}: {currency: string}) { // Renamed from 
               />
               <Bar
                 dataKey="income"
-                fill="var(--chart-2)"
+                fill="var(--constructive)"
                 name="Income"
                 radius={[5, 5, 0, 0]}
               />
