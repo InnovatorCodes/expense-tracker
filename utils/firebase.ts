@@ -820,3 +820,27 @@ export const updateBudget = async (
     throw e; // Re-throw the error for the calling component/function to handle
   }
 };
+
+export const deleteBudget = async (
+  userId: string,
+  categoryId: string
+) => {
+
+  if (!userId) {
+    throw new Error("User ID is required to delete a budget.");
+  }
+  if (!categoryId) {
+    throw new Error("Category ID is required to delete a budget.");
+  }
+
+  try {
+    // Get a reference to the specific budget document
+    const budgetDocRef = doc(db, 'users', userId, 'budgets', categoryId);
+
+    // Use deleteDoc to remove the document
+    await deleteDoc(budgetDocRef);
+  } catch (e) {
+    console.error(`Error deleting budget for category '${categoryId}':`, e);
+    throw e; // Re-throw the error for the calling component/function to handle
+  }
+};

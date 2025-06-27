@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react'; // Auth.js client provider
-import { subscribeToBudgets } from '@/utils/firebase'; // Import updated Firestore functions
+import { subscribeToBudgets, deleteBudget } from '@/utils/firebase'; // Import updated Firestore functions
 import { Budget } from '@/types/budget'; // Import the Transaction interface
 // Shadcn/ui components
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -68,21 +68,21 @@ const BudgetsList: React.FC<{currency: string}> = ({currency}) => {
   const handleBudgetSaved=()=>{
     setIsModalOpen(false);
   }
-/*
-  const handleDeleteTransaction = async (transactionId: string) => {
+
+  const handleDeleteBudget = async (budgetId: string) => {
     if (!userId) {
       console.warn("User not authenticated for deletion.");
       // TODO: Display user-friendly message (e.g., toast)
       return;
     }
     try {
-      await deleteTransaction(userId, transactionId);
+      await deleteBudget(userId, budgetId);
       // No need to manually update state, onSnapshot will handle it.
     } catch (e) {
       console.error("Failed to delete transaction:", e);
       // TODO: Display user-friendly error message
     }
-  };*/
+  };
 
   if (status === 'loading' || loading) {
     return (
@@ -149,7 +149,7 @@ const BudgetsList: React.FC<{currency: string}> = ({currency}) => {
                           <Button
                           variant="ghost"
                           size="icon"
-                          //onClick={() => handleDeleteTransaction(transaction.id)}
+                          onClick={() => handleDeleteBudget(budget.id)}
                           className="text-gray-500 hover:text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700/50 dark:text-gray-400"
                           aria-label={`Delete Budget for ${budget.category} category`}
                           >
