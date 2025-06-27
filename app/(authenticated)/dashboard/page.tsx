@@ -6,28 +6,35 @@ import BalanceCard from "@/components/balance-card";
 import RecentTransactions from "@/components/recent-transactions";
 import { ExpenseChart } from "@/components/expense-chart";
 import { PastWeekChart } from "@/components/past-week-chart";
-import TopTransactions from "@/components/top-transactions";
+import DashboardBudget from '@/components/dashboard-budget';
 import { getUserDefaultCurrency } from '@/utils/firebase';
-import {TransactionFloatingButton} from '@/components/floating-action-button';
+import {DashboardFloatingButton} from '@/components/floating-action-button';
 import TransactionModal from '@/components/add-transaction-modal';
 import { TransactionType } from '@/types/transaction'; // Import TransactionType
 import { Toaster } from 'sonner';
+import BudgetModal from '@/components/add-budget-modal';
 
 export default function DashboardPage() {
   const { data: session} = useSession(); // Get session data and status from Auth.js
   const userId = session?.user?.id;
   const [currency, setCurrency] = useState("INR");
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
+  const [isBudgetModalOpen,setIsBudgetModalOpen]=useState(false);
   const [selectedTransactionType, setSelectedTransactionType] = useState<TransactionType>('expense');
 
   const handleAddTransactionClick = (type: TransactionType) => {
       setSelectedTransactionType(type);
-      setIsModalOpen(true);
+      setIsTransactionModalOpen(true);
     };
+  
+  const handleCreateBudgetClick = () => {
+    setIsBudgetModalOpen(true);
+  };
 
-  const handleTransactionSuccess = () => {
+  const handleSuccess = () => {
     // Optionally show a toast notification here
-    setIsModalOpen(false); // Close modal on success
+    setIsTransactionModalOpen(false);
+    setIsBudgetModalOpen(false); // Close modal on success
   };
 
   useEffect(()=>{
@@ -50,21 +57,27 @@ export default function DashboardPage() {
         <div className="flex flex-col gap-6">
           <BalanceCard currency={currency} />
           <RecentTransactions currency={currency} />
-          <TopTransactions currency={currency} />
+          <DashboardBudget currency={currency} />
         </div>
         <div className="flex flex-col gap-6">
           <ExpenseChart currency={currency} />
           <PastWeekChart currency={currency} />
         </div>
       </div>
-      <TransactionFloatingButton onAddTransaction={handleAddTransactionClick} />
+      <DashboardFloatingButton onAddTransaction={handleAddTransactionClick} onAddBudget={handleCreateBudgetClick} />
       <TransactionModal 
-        isOpen={isModalOpen}
-        onOpenChange={setIsModalOpen}
-        onSuccess={handleTransactionSuccess}
+        isOpen={isTransactionModalOpen}
+        onOpenChange={setIsTransactionModalOpen}
+        onSuccess={handleSuccess}
         initialType={selectedTransactionType} 
         currency={currency}
       />
+      <BudgetModal
+      isOpen={isBudgetModalOpen}
+      onClose={()=>setIsBudgetModalOpen}
+      onSuccess={handleSuccess}
+      currency={currency}
+       />
       <Toaster />
     </section>
   );

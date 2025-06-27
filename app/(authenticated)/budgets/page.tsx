@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { getUserDefaultCurrency } from "@/utils/firebase";
 import { BudgetFloatingButton } from "@/components/floating-action-button";
 import BudgetsList from "@/components/budget-list";
-import CreateBudgetModal from "@/components/add-budget-modal";
+import BudgetModal from "@/components/add-budget-modal";
 import { Toaster } from "sonner";
 
 const BudgetsPage= () => {
@@ -47,7 +47,7 @@ const BudgetsPage= () => {
       <BudgetFloatingButton onAddBudget={handleCreateBudgetClick} />
 
       {/* Transaction Modal (conditionally rendered) */}
-      <CreateBudgetModal
+      <BudgetModal
         isOpen={isModalOpen}
         onClose={()=>setIsModalOpen(false)}
         onSuccess={handleBudgetSuccess}

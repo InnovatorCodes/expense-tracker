@@ -6,11 +6,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react'; // Auth.js client provider
-import { subscribeToBudgets, deleteBudget } from '@/utils/firebase'; // Import updated Firestore functions
+import { subscribeToBudgets, deleteBudget, pinBudget } from '@/utils/firebase'; // Import updated Firestore functions
 import { Budget } from '@/types/budget'; // Import the Transaction interface
 // Shadcn/ui components
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {Trash2, Info,Loader2,Edit } from 'lucide-react'
+import {Trash2, Info,Loader2,Edit, Pin } from 'lucide-react'
 import { categoryIcons } from '@/utils/categories';
 import { Button } from './ui/button';
 import EditBudgetModal from './edit-budget-modal';
@@ -58,7 +58,10 @@ const BudgetsList: React.FC<{currency: string}> = ({currency}) => {
     };
   }, [userId, status]); // Re-run effect if userId or authentication status changes
 
-  console.log(categoryExpenses)
+  const handlePinBudget=(budgetId: string)=>{
+    if(userId) pinBudget(userId,budgetId)
+  }
+
   const handleEditBudget=(budgetId:string)=>{
     const editBudget=budgets.find((budget)=>budget.id==budgetId)
     if(editBudget)
@@ -110,7 +113,7 @@ const BudgetsList: React.FC<{currency: string}> = ({currency}) => {
     <>
       <Card className="w-full shadow-lg rounded-lg">
         <CardHeader>
-          <CardTitle className="text-xl font-bold">All Transactions</CardTitle>
+          <CardTitle className="text-xl font-bold">All Budgets</CardTitle>
           <CardDescription >
           </CardDescription>
         </CardHeader>
@@ -136,7 +139,17 @@ const BudgetsList: React.FC<{currency: string}> = ({currency}) => {
                       <CardTitle className="text-xl font-bold capitalize flex items-center gap-2 mr-auto">
                         <Icon />{budget.category}
                       </CardTitle>
+                      
                       <div className="flex items-center space-x-3">
+                          <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handlePinBudget(budget.id)} // Placeholder for pin logic
+                          className="text-gray-500 hover:text-yellow-600 hover:bg-gray-100 dark:hover:bg-gray-700/50 dark:text-gray-400"
+                          aria-label={`Pin Budget for ${budget.category} category`}
+                          >
+                            <Pin className="h-5 w-5" />
+                          </Button>
                           <Button
                           variant="ghost" // Use a ghost variant for a subtle button
                           size="sm" // Small size

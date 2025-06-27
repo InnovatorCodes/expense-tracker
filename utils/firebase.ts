@@ -526,7 +526,6 @@ export const subscribeToTopTransactions = (
   );
 
   const unsubscribe = onSnapshot(q, (snapshot) => {
-    console.log(`Firestore: Top transactions onSnapshot triggered! Docs count: ${snapshot.docs.length}`);
     const fetchedTransactions: Transaction[] = snapshot.docs.map(doc => {
       const data = doc.data();
       const transaction: Transaction = {
@@ -710,7 +709,6 @@ export const subscribeToBudgets= async (
   const startOfMonth = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2, '0')}-01`;
   const endOfMonthDate = new Date(date.getFullYear(), date.getMonth()+2, 0); // Day 0 of next month is last day of current month
   const endOfMonth = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2, '0')}-${String(endOfMonthDate.getDate()).padStart(2, '0')}`;
-  console.log(startOfMonth,endOfMonth)
   const q1 = query(
     transactionsCollectionRef,
     where("type", "==", "expense"),
@@ -719,7 +717,6 @@ export const subscribeToBudgets= async (
   );
   const categoryAmounts: { [key: string]: number } = {"All":0};
   await getDocs(q1).then((querySnapshot)=>{
-    console.log(querySnapshot.docs.length);
     querySnapshot.docs.map(doc => {
       const data = doc.data();
       if(!categoryAmounts[data.category]){
@@ -751,6 +748,49 @@ export const subscribeToBudgets= async (
     // This is the error handler for the onSnapshot listener itself
     console.error("Firestore: onSnapshot listener error:", error.name, error.message, error.code);
   });
+  return unsubscribe;
+}
+
+export const subscribeToBudgetDashboard= async (
+  userId: string,
+  callback: (budget: Budget | null) => void
+)=>{
+  const userDocRef = getUserDocRef(userId);
+  const userDocSnapshot = await getDoc(userDocRef);
+  let budgetId: string | undefined;
+  if (userDocSnapshot.exists()) {
+    const data = userDocSnapshot.data();
+    budgetId = data?.pinnedBudget;
+  }
+
+  if (!budgetId) {
+    // If no pinned budget, return a no-op unsubscribe and call callback with empty array
+    callback(null);
+    return () => {};
+  }
+
+  const budgetDocRef = doc(db, 'users', userId, 'budgets', budgetId);
+
+  const unsubscribe = onSnapshot(budgetDocRef, (docSnapshot) => {
+    if (docSnapshot.exists()) {
+      const data = docSnapshot.data();
+      const budget: Budget = {
+        id: docSnapshot.id,
+        category: data.category,
+        amount: data.amount,
+        createdAt: data.createdAt?.toDate() || new Date(), // Convert Firestore Timestamp to Date
+      };
+      callback(budget);
+    } else {
+      // Document does not exist
+      callback(null);
+    }
+  }, (error) => {
+    // Handle errors during snapshot listening
+    console.error(`Firestore: onSnapshot listener error for budget '${budgetId}':`, error.name, error.message, error.code);
+    callback(null);
+  });
+
   return unsubscribe;
 }
 
@@ -844,3 +884,18 @@ export const deleteBudget = async (
     throw e; // Re-throw the error for the calling component/function to handle
   }
 };
+
+export const pinBudget= async (
+  userId: string,
+  budgetId: string,
+)=>{
+  try {
+    const userDocRef = getUserDocRef(userId);
+    // Use setDoc with merge: true to update only the defaultCurrency field
+    // without overwriting other fields if the document already exists.
+    await setDoc(userDocRef, { pinnedBudget: budgetId }, { merge: true });
+  } catch (error) {
+    console.error(`Firestore: Error setting default currency for user ${userId}:`, error);
+    throw error; // Re-throw to handle in calling function
+  }
+}

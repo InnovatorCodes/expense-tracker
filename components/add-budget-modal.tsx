@@ -1,4 +1,4 @@
-// components/CreateBudgetModal.tsx
+// components/BudgetModal.tsx
 "use client";
 
 import React, { useState } from 'react';
@@ -41,13 +41,13 @@ import { toast } from 'sonner'; // Assuming you use Sonner for toasts
 type CreateBudgetFormInput = z.infer<typeof budgetFormSchema>;
 
 
-interface CreateBudgetModalProps {
+interface BudgetModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
   currency: string
 }
-const CreateBudgetModal: React.FC<CreateBudgetModalProps> = ({ isOpen, onClose, onSuccess, currency }) => {
+const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess, currency }) => {
   const[loading,setLoading]=useState(false);
   const getCurrencySymbol = () => {
     switch (currency) {
@@ -183,4 +183,4 @@ const CreateBudgetModal: React.FC<CreateBudgetModalProps> = ({ isOpen, onClose, 
   );
 };
 
-export default CreateBudgetModal;
+export default BudgetModal;

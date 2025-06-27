@@ -8,7 +8,7 @@ import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react'; // Auth.js client provider
 import { subscribeToTransactions, deleteTransaction } from '@/utils/firebase'; // Import updated Firestore functions
 import { Transaction } from '@/types/transaction'; // Import the Transaction interface
-import EditTransactionModal from './edit-transaction-form';
+import EditTransactionModal from './edit-transaction-modal';
 // Shadcn/ui components
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {Trash2, Info,Loader2,Edit } from 'lucide-react'
