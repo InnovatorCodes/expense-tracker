@@ -11,7 +11,7 @@ import { createTransaction } from '@/actions/transaction';
 import * as z from "zod/v4";
 import { Loader2, Wallet } from 'lucide-react'; // For loading spinner, add, cancel icons
 import { toast } from 'sonner';
-import { categoryIcons } from '@/utils/categories';
+import { categoryIcons, expenseCategories,incomeCategories } from '@/utils/categories';
 
 // Shadcn/ui components
 import { Button } from "@/components/ui/button";
@@ -48,15 +48,6 @@ interface TransactionModalProps {
   onSuccess: () => void; // Callback for successful form submission
   currency: string
 }
-
-const expenseCategories = [
-  'Food', 'Transport', 'Shopping', 'Utilities', 'Rent', 'Health', 'Education',
-  'Entertainment', 'Bills', 'Groceries', 'Travel', 'Other Expense'
-];
-
-const incomeCategories = [
-  'Salary', 'Freelance', 'Investments', 'Gift', 'Refund', 'Other Income'
-];
 
 const TransactionModal: React.FC<TransactionModalProps> = ({
   isOpen,
@@ -95,7 +86,6 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
   };
 
   const onSubmit = async (data: z.infer<typeof transactionSchema>) => {
-    console.log("Submitting form with data:", data);
     setLoading(true);
     form.clearErrors(); // Clear client-side errors
 

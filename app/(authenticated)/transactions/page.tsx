@@ -9,6 +9,7 @@ import TransactionModal from '@/components/add-transaction-modal'; // New Modal 
 import TransactionList from '@/components/transactions-list';
 import BalanceCard from '@/components/balance-card';
 import { getUserDefaultCurrency } from '@/utils/firebase'; // Import the function to fetch default currency
+import { Toaster } from 'sonner';
 
 import { TransactionType } from '@/types/transaction'; // Import TransactionType
 // Mark as client component as it contains interactive elements and state
@@ -62,6 +63,7 @@ const TransactionsPage: React.FC = () => {
         onSuccess={handleTransactionSuccess}
         currency={currency}
       />
+      <Toaster />
     </div>
   );
 };

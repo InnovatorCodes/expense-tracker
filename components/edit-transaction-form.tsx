@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form';
 import { Transaction } from '@/types/transaction';
 import { transactionSchema } from '@/schemas/transaction-schema';
 import { Button } from '@/components/ui/button';
-import { categoryIcons } from '@/utils/categories';
+import { categoryIcons,expenseCategories,incomeCategories } from '@/utils/categories';
 import {
   Dialog,
   DialogContent,
@@ -45,14 +45,6 @@ interface EditTransactionModalProps {
   currency: string; // Pass the user's default currency
 }
 
-const expenseCategories = [
-  'Food', 'Transport', 'Shopping', 'Utilities', 'Rent', 'Health', 'Education',
-  'Entertainment', 'Bills', 'Groceries', 'Travel', 'Other Expense'
-];
-
-const incomeCategories = [
-  'Salary', 'Freelance', 'Investments', 'Gift', 'Refund', 'Other Income'
-];
 
 
 const EditTransactionModal: React.FC<EditTransactionModalProps> = ({

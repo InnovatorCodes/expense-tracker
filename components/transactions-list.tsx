@@ -13,7 +13,6 @@ import EditTransactionModal from './edit-transaction-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {Trash2, Info,Loader2,Edit } from 'lucide-react'
 import { Button } from "@/components/ui/button";
-import { Toaster } from 'sonner';
 import { categoryIcons } from '@/utils/categories';
 
 
@@ -189,7 +188,6 @@ const TransactionList: React.FC<{currency: string}> = ({currency}) => {
       onSave={handleTransactionSaved}
       currency={currency}
        />
-      <Toaster />
     </>
   );
 };

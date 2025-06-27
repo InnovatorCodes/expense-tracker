@@ -22,6 +22,7 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { Transaction } from "@/types/transaction";
+import { Budget } from "@/types/budget";
 
 // --- GLOBAL VARIABLES (Provided by Canvas Runtime) ---
 declare const __app_id: string | undefined;
@@ -70,6 +71,12 @@ const getUserDocRef = (userId: string) => {
   const path = `users/${userId}`;
   return doc(db, path);
 };
+
+const getUserBudgetsCollectionRef = (userId: string) => {
+  const path = `/users/${userId}/budgets`;
+  return collection(db, path);
+};
+
 
 /**
  * Fetches the default currency for a specific user.
@@ -677,5 +684,139 @@ export const deleteTransaction = async (userId: string, transactionId: string) =
   } catch (e) {
     console.error("Error removing transaction document: ", e);
     throw e;
+  }
+};
+
+
+interface BudgetData{
+  category: string;
+  amount: number;
+}
+
+export const subscribeToBudgets= async (
+  userId: string,
+  budgetCallback: (budgets: Budget[]) => void,
+  transactionCallback: (transactions: { [key: string]: number })=>void,
+)=>{
+  if (!userId) {
+    console.error("userId is undefined or null");
+    budgetCallback([]); // Return empty array immediately
+    transactionCallback({})
+    return () => {}; // Return no-op unsubscribe
+  }
+
+  const date=new Date();
+  const transactionsCollectionRef = getUserTransactionsCollectionRef(userId);
+  const startOfMonth = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2, '0')}-01`;
+  const endOfMonthDate = new Date(date.getFullYear(), date.getMonth()+2, 0); // Day 0 of next month is last day of current month
+  const endOfMonth = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2, '0')}-${String(endOfMonthDate.getDate()).padStart(2, '0')}`;
+  console.log(startOfMonth,endOfMonth)
+  const q1 = query(
+    transactionsCollectionRef,
+    where("type", "==", "expense"),
+    where("date", ">=", startOfMonth),
+    where("date", "<=", endOfMonth), 
+  );
+  const categoryAmounts: { [key: string]: number } = {"All":0};
+  await getDocs(q1).then((querySnapshot)=>{
+    console.log(querySnapshot.docs.length);
+    querySnapshot.docs.map(doc => {
+      const data = doc.data();
+      if(!categoryAmounts[data.category]){
+        categoryAmounts[data.category]=0;
+      }
+      categoryAmounts[data.category]+=data.amount;
+      categoryAmounts["All"]+=data.amount;
+    });
+    transactionCallback(categoryAmounts);
+  });
+
+  const budgetsCollectionRef = collection(db, 'users', userId, 'budgets');
+  const q2 = query(budgetsCollectionRef, orderBy('createdAt'));
+
+  const unsubscribe = onSnapshot(q2, (snapshot) => {
+    const fetchedBudgets: Budget[] = snapshot.docs.map(doc => {
+      const data = doc.data();
+      const budget: Budget = {
+        id: doc.id,
+        category: data.category,
+        amount: data.amount,
+        createdAt: data.createdAt?.toDate() || new Date(), // Convert Firestore Timestamp to Date
+      };
+      return budget;
+    });
+    
+    budgetCallback(fetchedBudgets);
+  }, (error) => {
+    // This is the error handler for the onSnapshot listener itself
+    console.error("Firestore: onSnapshot listener error:", error.name, error.message, error.code);
+  });
+  return unsubscribe;
+}
+
+/**
+ * Adds a new budget to Firestore.
+ * @param userId The ID of the user creating the budget.
+ * @param budgetData The data for the new budget, excluding ID and createdAt.
+ * @returns A promise that resolves to the ID of the newly created budget.
+ */
+export const addBudget = async (userId: string, budgetData: BudgetData) => {
+  try {
+    const { category,amount } = budgetData; // Destructure recurrence periods
+    const budgetsCollectionRef = getUserBudgetsCollectionRef(userId);
+
+    const q=query(budgetsCollectionRef,where("category","==",category))
+    const existingDocs=await getDocs(q);
+    
+    // 2. Try to fetch the document
+
+    if(!existingDocs.empty) {
+      // Budget document for this category already exists
+      throw new Error(
+        `A budget already exists for category '${category}'.`
+      );
+    } else {
+      // Budget document for this category does NOT exist, so create a new one
+      const budgetDocRef= await addDoc(budgetsCollectionRef, {
+        category: category, // Ensure category is explicitly set as a field
+        amount: amount,
+        createdAt: serverTimestamp()
+      });
+      return budgetDocRef.id; // Return the ID (category name)
+    }
+  } catch (e) {
+    console.error('Error adding/updating budget:', e);
+    throw e; // Re-throw the error for the caller to handle
+  }
+};
+
+
+type UpdatableBudgetFields = Partial<Omit<Budget, 'id' | 'createdAt' | 'userId'>>;
+
+export const updateBudget = async (
+  userId: string,
+  budgetId: string,
+  updatedData: UpdatableBudgetFields
+) => {
+  if (!userId) {
+    throw new Error("User ID is required.");
+  }
+  if (!budgetId) {
+    throw new Error("Category ID is required to edit a budget.");
+  }
+  if (Object.keys(updatedData).length === 0) {
+    throw new Error("No data provided for update.");
+  }
+
+  try {
+    // Get a reference to the specific budget document
+    const budgetDocRef = doc(db, 'users', userId, 'budgets', budgetId);
+
+    // Use updateDoc to update the specified fields
+    // This will only update the fields provided in updatedData, leaving others untouched.
+    await updateDoc(budgetDocRef, updatedData);
+  } catch (e) {
+    console.error(`Error editing budget for category ID: '${budgetId}',`, e);
+    throw e; // Re-throw the error for the calling component/function to handle
   }
 };

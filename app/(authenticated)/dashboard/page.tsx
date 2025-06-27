@@ -11,6 +11,7 @@ import { getUserDefaultCurrency } from '@/utils/firebase';
 import {TransactionFloatingButton} from '@/components/floating-action-button';
 import TransactionModal from '@/components/add-transaction-modal';
 import { TransactionType } from '@/types/transaction'; // Import TransactionType
+import { Toaster } from 'sonner';
 
 export default function DashboardPage() {
   const { data: session} = useSession(); // Get session data and status from Auth.js
@@ -64,6 +65,7 @@ export default function DashboardPage() {
         initialType={selectedTransactionType} 
         currency={currency}
       />
+      <Toaster />
     </section>
   );
 }

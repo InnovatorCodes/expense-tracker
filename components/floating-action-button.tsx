@@ -53,3 +53,21 @@ export const TransactionFloatingButton: React.FC<FloatingActionButtonProps> = ({
   );
 };
 
+export const BudgetFloatingButton = ({ onAddBudget }: {onAddBudget: ()=>void}) => {
+
+  const handleClick = () => {
+    onAddBudget();
+  };
+
+  return (
+    <div className="fixed bottom-8 right-8 z-50 flex flex-col items-end mb-0">
+      <Button
+        onClick={handleClick}
+        className="h-14 w-14 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl flex items-center justify-center transition-all duration-300 ease-in-out transform hover:scale-110"
+        aria-label="Add new transaction"
+      >
+        <Plus className="h-8 w-8" />
+      </Button>
+    </div>
+  );
+};

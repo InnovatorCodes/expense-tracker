@@ -67,7 +67,6 @@ export function ExpenseChart({currency}: {currency: string}) {
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth() + 1; // Month is 1-indexed
 
-    console.log(`ExpenseChart: Setting up real-time listener for user: ${userId}, Month: ${currentMonth}/${currentYear}`);
     setLoading(true); // Set loading true while waiting for first snapshot
     if(userId){
       const unsubscribe = subscribeToMonthlyCategorizedExpenses(

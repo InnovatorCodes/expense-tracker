@@ -1,11 +1,27 @@
 import {
   Utensils, Car, ShoppingBag, Home, Wallet, GraduationCap,
   Sparkles, PiggyBank, Briefcase, Plane, Hospital, Lightbulb,
-  Banknote, Receipt, Gift, RefreshCw, Handshake// For the Select trigger chevron
+  Banknote, Receipt, Gift, RefreshCw, Handshake, LayoutGrid,// For the Select trigger chevron
 } from 'lucide-react';
+
+export const expenseCategories = [
+  'Food', 'Transport', 'Shopping', 'Utilities', 'Rent', 'Health', 'Education',
+  'Entertainment', 'Bills', 'Groceries', 'Travel', 'Other Expense'
+];
+
+export const budgetCategories=[
+  'All','Food', 'Transport', 'Shopping', 'Utilities', 'Rent', 'Health', 'Education',
+  'Entertainment', 'Bills', 'Groceries', 'Travel', 'Other Expense'
+]
+
+export const incomeCategories = [
+  'Salary', 'Freelance', 'Investments', 'Gift', 'Refund', 'Other Income'
+];
+
 
 export const categoryIcons: { [key: string]: React.ElementType } = {
   // Expense Icons
+  'All': LayoutGrid,
   'Food': Utensils,
   'Transport': Car,
   'Shopping': ShoppingBag,
