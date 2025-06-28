@@ -40,7 +40,7 @@ const DashboardBudget: React.FC<{currency: string}> = ({currency}) => {
     budgetComponent=(
     <Card
     key={budget.id}
-    className='gap-0 bg-gray-700'
+    className='gap-0 bg-gray-100 dark:bg-gray-700'
     >
         <div className="px-6 flex items-center gap-2">
             <CardTitle className="text-xl font-bold capitalize flex items-center gap-2 mr-auto">
@@ -51,18 +51,18 @@ const DashboardBudget: React.FC<{currency: string}> = ({currency}) => {
         {budget.amount !== undefined && (
             <div>
                 <div className="flex items-center justify-between text-gray-800 text-base mb-1">
-                <span className="font-medium text-white">Used:</span>
-                <span className="ml-2 text-white font-semibold">
+                <span className="font-medium text-black dark:text-white">Used:</span>
+                <span className="ml-2 text-black dark:text-white font-semibold">
                     {getCurrencySymbol()+expense?.toFixed(2)} / {getCurrencySymbol()+budget.amount.toFixed(2)}
                 </span>
                 </div>
-                <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-gray-200">
+                <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-white dark:bg-gray-200">
                 <div 
                     className={`h-full rounded-full  bg-indigo-600 transition-all duration-300 ease-in-out`} 
                     style={{width: `${Math.max(0, Math.min(100, percentage))}%`}}>
                 </div>
                 </div>
-                <span className="text-xs text-gray-400 mt-1 block text-right">
+                <span className="text-xs text-black dark:text-gray-400 mt-1 block text-right">
                 {percentage || 0}% Used
                 </span>
             </div>

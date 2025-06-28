@@ -77,6 +77,18 @@ const getUserBudgetsCollectionRef = (userId: string) => {
   return collection(db, path);
 };
 
+export const getPinnedBudgetId= async (userId: string, callback:(budgetId: string)=>void)=>{
+  const userDocRef = getUserDocRef(userId);
+  await getDoc(userDocRef).then((userDocSnapshot)=>{
+    let budgetId: string | undefined;
+    if (userDocSnapshot.exists()) {
+      const data = userDocSnapshot.data();
+      budgetId = data?.pinnedBudget;
+    }
+    if(budgetId) callback(budgetId)
+  });
+}
+
 
 /**
  * Fetches the default currency for a specific user.
@@ -130,9 +142,10 @@ export const setUserDefaultCurrency = async (userId: string, currency: string) =
  */
 export const subscribeToTransactions = (
   userId: string,
+  startDate: Date,
+  endDate: Date,
   callback: (transactions: Transaction[]) => void
 ) => {
-
   // If userId is missing, log an error and don't proceed with subscription
   if (!userId) {
     console.error("userId is undefined or null");
@@ -141,7 +154,11 @@ export const subscribeToTransactions = (
   }
 
   const transactionsCollectionRef = getUserTransactionsCollectionRef(userId);
-  const q = query(transactionsCollectionRef, orderBy("date", "desc"), orderBy("createdAt", "desc"));
+  const q = query(
+    transactionsCollectionRef,
+    where('date', '>=', startDate.toISOString()), 
+    where('date', '<=', endDate.toISOString()), 
+    orderBy("date", "desc"), orderBy("createdAt", "desc"));
 
   const unsubscribe = onSnapshot(q, (snapshot) => {
     const fetchedTransactions: Transaction[] = snapshot.docs.map(doc => {
@@ -155,7 +172,7 @@ export const subscribeToTransactions = (
         type: data.type, // 'expense' or 'income'
         notes: data.notes || undefined,
         createdAt: data.createdAt?.toDate() || new Date(), // Convert Firestore Timestamp to Date
-      };
+      };  
       return transaction;
     });
 

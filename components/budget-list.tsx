@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react'; // Auth.js client provider
-import { subscribeToBudgets, deleteBudget, pinBudget } from '@/utils/firebase'; // Import updated Firestore functions
+import { subscribeToBudgets, deleteBudget, pinBudget, getPinnedBudgetId } from '@/utils/firebase'; // Import updated Firestore functions
 import { Budget } from '@/types/budget'; // Import the Transaction interface
 // Shadcn/ui components
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,6 +25,7 @@ const BudgetsList: React.FC<{currency: string}> = ({currency}) => {
   const [editBudget, setEditBudget]=useState<Budget | null>(null)
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pinnedBudgetId, setPinnedBudgetId]=useState("");
 
   const getCurrencySymbol = () => {
     switch (currency) {
@@ -34,6 +35,10 @@ const BudgetsList: React.FC<{currency: string}> = ({currency}) => {
         return '₹';
     }
   }; 
+
+  useEffect(()=>{
+    if(userId) getPinnedBudgetId(userId, (budgetId)=>setPinnedBudgetId(budgetId))
+  },[userId])
 
   // Subscribe to real-time transaction updates
   useEffect(() => {
@@ -59,7 +64,14 @@ const BudgetsList: React.FC<{currency: string}> = ({currency}) => {
   }, [userId, status]); // Re-run effect if userId or authentication status changes
 
   const handlePinBudget=(budgetId: string)=>{
-    if(userId) pinBudget(userId,budgetId)
+    if(pinnedBudgetId==""){
+      setPinnedBudgetId(budgetId);
+      if(userId) pinBudget(userId,budgetId);
+    }
+    else{
+      setPinnedBudgetId("");
+      if(userId) pinBudget(userId,"");
+    }
   }
 
   const handleEditBudget=(budgetId:string)=>{
@@ -133,7 +145,7 @@ const BudgetsList: React.FC<{currency: string}> = ({currency}) => {
                 return (
                 <Card
                   key={budget.id}
-                  className='gap-0 bg-gray-700'
+                  className='gap-0 bg-gray-100 dark:bg-gray-700'
                 >
                   <div className="px-6 flex items-center gap-2">
                       <CardTitle className="text-xl font-bold capitalize flex items-center gap-2 mr-auto">
@@ -145,16 +157,16 @@ const BudgetsList: React.FC<{currency: string}> = ({currency}) => {
                           variant="ghost"
                           size="icon"
                           onClick={() => handlePinBudget(budget.id)} // Placeholder for pin logic
-                          className="text-gray-500 hover:text-yellow-600 hover:bg-gray-100 dark:hover:bg-gray-700/50 dark:text-gray-400"
+                          className="text-black hover:text-yellow-600 dark:hover:text-yellow-600 hover:bg-gray-100 dark:text-gray-300"
                           aria-label={`Pin Budget for ${budget.category} category`}
                           >
-                            <Pin className="h-5 w-5" />
+                            <Pin className="h-5 w-5" fill={pinnedBudgetId==budget.id ? "currentColor" : "none"} />
                           </Button>
                           <Button
                           variant="ghost" // Use a ghost variant for a subtle button
                           size="sm" // Small size
                           onClick={() => handleEditBudget(budget.id)} // Placeholder for future edit logic
-                          className="flex items-center justify-center text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                          className="flex items-center justify-center text-black hover:text-blue-700 dark:text-gray-300 dark:hover:text-blue-600"
                           aria-label={`Edit Budget for ${budget.category} category`}
                           >
                           <Edit className="h-4 w-4" />
@@ -163,7 +175,7 @@ const BudgetsList: React.FC<{currency: string}> = ({currency}) => {
                           variant="ghost"
                           size="icon"
                           onClick={() => handleDeleteBudget(budget.id)}
-                          className="text-gray-500 hover:text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700/50 dark:text-gray-400"
+                          className="text-black hover:text-red-600  dark:hover:text-red-600 hover:bg-gray-100 dark:text-gray-300"
                           aria-label={`Delete Budget for ${budget.category} category`}
                           >
                           <Trash2 className="h-5 w-5" />
@@ -174,18 +186,18 @@ const BudgetsList: React.FC<{currency: string}> = ({currency}) => {
                     {budget.amount !== undefined && (
                         <div>
                           <div className="flex items-center justify-between text-gray-800 text-base mb-1">
-                            <span className="font-medium text-white">Used:</span>
-                            <span className="ml-2 text-white font-semibold">
+                            <span className="font-medium text-black dark:text-white">Used:</span>
+                            <span className="ml-2 text-black dark:text-white font-semibold">
                               {getCurrencySymbol()+expense?.toFixed(2)} / {getCurrencySymbol()+budget.amount.toFixed(2)}
                             </span>
                           </div>
-                          <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-gray-200">
+                          <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-white dark:bg-gray-200">
                             <div 
                               className={`h-full rounded-full  bg-indigo-600 transition-all duration-300 ease-in-out`} 
                               style={{width: `${Math.max(0, Math.min(100, percentage))}%`}}>
                             </div>
                           </div>
-                          <span className="text-xs text-gray-400 mt-1 block text-right">
+                          <span className="text-xs text-black dark:text-white mt-1 block text-right">
                             {percentage || 0}% Used
                           </span>
                         </div>

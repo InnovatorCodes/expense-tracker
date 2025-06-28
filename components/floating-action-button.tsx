@@ -23,7 +23,7 @@ export const TransactionFloatingButton: React.FC<FloatingActionButtonProps> = ({
   };
 
   return (
-    <div className="fixed bottom-8 right-8 z-50 flex flex-col items-end">
+    <div className="fixed bottom-8 right-8 z-50 flex flex-col items-end mb-0">
       {showOptions && (
         <div className="flex flex-col space-y-3 mb-4">
           <Button

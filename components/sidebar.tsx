@@ -27,7 +27,7 @@ const Sidebar = () => {
             const isActive = pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/');
             return (
             <li key={index}>
-              <Link href={item.href} className={`flex items-center gap-4 p-3 rounded-lg {"text-gray-600 dark:text-gray-300"} hover:bg-indigo-50 dark:hover:bg-gray-700 transition-colors ${isActive? 'bg-indigo-50 dark:bg-gray-700 text-indigo-600 dark:text-white' : ''}`}>
+              <Link href={item.href} className={`flex items-center gap-4 p-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-700 transition-colors ${isActive? 'bg-indigo-50 dark:bg-gray-700 text-indigo-600 dark:text-white' : ''}`}>
                 {item.icon}
                 <span className="font-medium text-xl">{item.name}</span>
               </Link>

@@ -11,7 +11,7 @@ import { Transaction } from '@/types/transaction'; // Import the Transaction int
 import EditTransactionModal from './edit-transaction-modal';
 // Shadcn/ui components
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {Trash2, Info,Loader2,Edit } from 'lucide-react'
+import {Trash2, Info,Loader2,Edit, ChevronLeft,ChevronRight } from 'lucide-react'
 import { Button } from "@/components/ui/button";
 import { categoryIcons } from '@/utils/categories';
 
@@ -24,6 +24,7 @@ const TransactionList: React.FC<{currency: string}> = ({currency}) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loadingTransactions, setLoadingTransactions] = useState(true);
   const [editTransaction,setEditTransaction]=useState<Transaction | null>(null);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const getCurrencySymbol = () => {
     switch (currency) {
@@ -34,12 +35,21 @@ const TransactionList: React.FC<{currency: string}> = ({currency}) => {
     }
   }; 
 
+  const getMonthName = (date: Date) => {
+    const options: Intl.DateTimeFormatOptions = { month: 'long' };
+    return new Intl.DateTimeFormat('en-US', options).format(date);
+  };
+
   // Subscribe to real-time transaction updates
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
     if (userId && status === 'authenticated') {
       setLoadingTransactions(true);
-      unsubscribe = subscribeToTransactions(userId, (fetchedTransactions) => {
+      const year = currentMonth.getFullYear();
+      const month = currentMonth.getMonth();
+      const startDate = new Date(year, month, 1);
+      const endDate = new Date(year, month + 1, 0, 23, 59, 59, 999);
+      unsubscribe = subscribeToTransactions(userId, startDate, endDate, (fetchedTransactions) => {
         setTransactions(fetchedTransactions);
         setLoadingTransactions(false);
       });
@@ -47,7 +57,21 @@ const TransactionList: React.FC<{currency: string}> = ({currency}) => {
     return () => {
       if (unsubscribe) unsubscribe();
     };
-  }, [userId, status]); // Re-run effect if userId or authentication status changes
+  }, [userId, status, currentMonth]); // Re-run effect if userId or authentication status changes
+
+  const handlePreviousMonth = () => {
+    setCurrentMonth((prevMonth) => {
+      const newMonth = new Date(prevMonth.getFullYear(), prevMonth.getMonth() - 1, 1);
+      return newMonth;
+    });
+  };
+
+  const handleNextMonth = () => {
+    setCurrentMonth((prevMonth) => {
+      const newMonth = new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 1);
+      return newMonth;
+    });
+  };
 
   const handleEditTransaction=(transactionId:string)=>{
     const editTransaction=transactions.find((transaction)=>transaction.id==transactionId)
@@ -100,11 +124,35 @@ const TransactionList: React.FC<{currency: string}> = ({currency}) => {
   return (
     <>
       <Card className="w-full dark:bg-gray-800 shadow-lg rounded-lg">
-        <CardHeader>
-          <CardTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">All Transactions</CardTitle>
-          <CardDescription className="text-gray-600 dark:text-gray-300">
-            A detailed list of your income and expenses.
-          </CardDescription>
+        <CardHeader className='flex'>
+          <div className='flex flex-col mr-auto'>
+            <CardTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">All Transactions</CardTitle>
+            <CardDescription className="text-gray-600 dark:text-gray-300">
+              A detailed list of your income and expenses.
+            </CardDescription>
+          </div>
+          <div className="flex items-center justify-between mt-4 gap-2">
+            <Button
+              variant="outline"
+              onClick={handlePreviousMonth}
+              className=" px-0 dark:text-gray-300 dark:border-gray-700 dark:hover:bg-gray-700 w-min"
+              aria-label="Previous Month"
+            >
+              <ChevronLeft className="h-4 w-4 mr-2" /> Previous
+            </Button>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+              {getMonthName(currentMonth)+' '+currentMonth.getFullYear()}
+            </h3>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNextMonth}
+              className="dark:text-gray-300 dark:border-gray-700 dark:hover:bg-gray-700"
+              aria-label="Next Month"
+            >
+              Next<ChevronRight className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {transactions.length === 0 ? (
