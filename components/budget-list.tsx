@@ -157,7 +157,7 @@ const BudgetsList: React.FC<{currency: string}> = ({currency}) => {
                           variant="ghost"
                           size="icon"
                           onClick={() => handlePinBudget(budget.id)} // Placeholder for pin logic
-                          className="text-black hover:text-yellow-600 dark:hover:text-yellow-600 hover:bg-gray-100 dark:text-gray-300"
+                          className="text-black dark:text-gray-300 hover:text-yellow-600 dark:hover:text-yellow-600"
                           aria-label={`Pin Budget for ${budget.category} category`}
                           >
                             <Pin className="h-5 w-5" fill={pinnedBudgetId==budget.id ? "currentColor" : "none"} />
@@ -166,7 +166,7 @@ const BudgetsList: React.FC<{currency: string}> = ({currency}) => {
                           variant="ghost" // Use a ghost variant for a subtle button
                           size="sm" // Small size
                           onClick={() => handleEditBudget(budget.id)} // Placeholder for future edit logic
-                          className="flex items-center justify-center text-black hover:text-blue-700 dark:text-gray-300 dark:hover:text-blue-600"
+                          className="flex items-center justify-center text-black dark:text-gray-300 hover:text-blue-700 dark:hover:text-blue-600"
                           aria-label={`Edit Budget for ${budget.category} category`}
                           >
                           <Edit className="h-4 w-4" />
@@ -175,7 +175,7 @@ const BudgetsList: React.FC<{currency: string}> = ({currency}) => {
                           variant="ghost"
                           size="icon"
                           onClick={() => handleDeleteBudget(budget.id)}
-                          className="text-black hover:text-red-600  dark:hover:text-red-600 hover:bg-gray-100 dark:text-gray-300"
+                          className="text-black dark:text-gray-300 hover:text-red-600  dark:hover:text-red-600"
                           aria-label={`Delete Budget for ${budget.category} category`}
                           >
                           <Trash2 className="h-5 w-5" />

@@ -208,7 +208,7 @@ const TransactionList: React.FC<{currency: string}> = ({currency}) => {
                       variant="ghost" // Use a ghost variant for a subtle button
                       size="sm" // Small size
                       onClick={() => handleEditTransaction(transaction.id)} // Placeholder for future edit logic
-                      className="flex items-center justify-center text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                      className="flex items-center justify-center text-gray-500 dark:text-gray-300 hover:text-blue-700  dark:hover:text-blue-600"
                       aria-label={`Edit ${transaction.name}`}
                     >
                       <Edit className="h-4 w-4" />
@@ -217,7 +217,7 @@ const TransactionList: React.FC<{currency: string}> = ({currency}) => {
                       variant="ghost"
                       size="icon"
                       onClick={() => handleDeleteTransaction(transaction.id)}
-                      className="text-gray-500 hover:text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700/50 dark:text-gray-400"
+                      className="text-gray-500 dark:text-gray-300 hover:text-red-600  dark:hover:text-red-600"
                       aria-label={`Delete ${transaction.name}`}
                     >
                       <Trash2 className="h-5 w-5" />
