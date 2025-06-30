@@ -77,7 +77,6 @@ const TransactionList = ({currency, exchangeRates}: {currency: string,exchangeRa
     const editTransaction=transactions.find((transaction)=>transaction.id==transactionId)
     if(editTransaction)
     setEditTransaction(editTransaction)
-    console.log(editTransaction)
     setIsModalOpen(true);
   }
   const handleTransactionSaved=()=>{

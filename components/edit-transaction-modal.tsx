@@ -148,32 +148,6 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                 )}
                 />
                 <FormField
-                control={form.control}
-                name="amount"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Amount</FormLabel>
-                    <FormControl>
-                        <div className="relative flex items-center">
-                        <span className="absolute left-3 text-gray-500 dark:text-gray-400">
-                            {getCurrencySymbol(selectedCurrency)}
-                        </span>
-                        <Input
-                            type="number"
-                            placeholder="e.g., 25.50"
-                            step="0.01"
-                            min="0.01"
-                            {...field}
-                            onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
-                            className="pl-10 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600" // Adjusted padding-left
-                        />
-                        </div>
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-                <FormField
                   control={form.control}
                   name="currency" // Name for the currency field
                   render={({ field }) => (
@@ -197,6 +171,33 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                       <FormMessage />
                     </FormItem>
                   )}
+                />
+                <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Amount</FormLabel>
+                    <FormControl>
+                        <div className="relative flex items-center">
+                        <span className="absolute left-3 text-gray-500 dark:text-gray-400">
+                            {getCurrencySymbol(selectedCurrency)}
+                        </span>
+                        <Input
+                            type="number"
+                            placeholder="e.g., 25.50"
+                            step="0.01"
+                            min="0.01"
+                            max="10000000000"
+                            {...field}
+                            onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
+                            className="pl-9 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600" // Adjusted padding-left
+                        />
+                        </div>
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
                 />
                 <FormField
                 control={form.control}

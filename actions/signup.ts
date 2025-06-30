@@ -25,7 +25,7 @@ export const signUp = async(data: z.infer<typeof signUpSchema>)=>{
         })
         if(userExists) return { error: "User already exists"};
         const lowerCaseEmail =email.toLowerCase();
-        const user=await prisma.user.create({
+        await prisma.user.create({
             data: {
                 email: lowerCaseEmail,
                 password: hashedPassword,
@@ -33,10 +33,9 @@ export const signUp = async(data: z.infer<typeof signUpSchema>)=>{
             }
         })
         return { success: "User created successfully"}
-        console.log(user.name);
     }
     catch(error){
-        console.log(error)
+        console.error(error)
         return {error: "An error occurred"};
     }
 }

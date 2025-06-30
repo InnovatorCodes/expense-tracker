@@ -183,8 +183,9 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                         step="0.01"
                         min="0.01"
                         {...field}
+                        max="10000000000"
                         onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
-                        className="pl-8 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600" // Adjusted padding-left
+                        className="pl-9 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600" // Adjusted padding-left
                       />
                     </div>
                   </FormControl>
