@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Expense Tracker
 
-## Getting Started
+A feature-rich expense tracker application built with modern web technologies to help you manage your finances effectively. This application allows users to track their expenses and budgets with support for multiple currencies, real-time data updates, and a customizable user interface.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## ✨ Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+* **Authentication**: Secure user authentication implemented with **Auth.js**, supporting both credentials-based login and social login with **Google**.
+* **Real-time Data**: Transactions are stored in **Firebase Firestore** with real-time subscriptions, ensuring that your data is always up-to-date across all sessions.
+* **Multi-Currency Support**: Add transactions in 6 different currencies. All financial data is aggregated and displayed in a base currency (INR).
+* **Transaction Management**: Users can easily add, edit, and categorize their transactions.
+* **Budgeting**: Create and manage budgets. Pin your most important budget to the dashboard for quick access.
+* **Data Visualization**: Interactive charts and UI components from **shadcn/ui** to visualize your financial data.
+* **Customizable Theme**: Switch between light and dark themes with **next-themes**.
+* **Responsive Design**: The application is fully responsive and works seamlessly on all devices.
+* **TypeScript**: The entire project is built with **TypeScript**, ensuring type safety and improved developer experience.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🛠️ Tech Stack
 
-## Learn More
+* **Framework**: [Next.js](https://nextjs.org/)
+* **Language**: [TypeScript](https://www.typescriptlang.org/)
+* **Authentication**: [Auth.js](https://authjs.dev/)
+* **Database**:
+    * [MongoDB](https://www.mongodb.com/) for user data.
+    * [Firebase Firestore](https://firebase.google.com/docs/firestore) for transaction data.
+* **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+* **UI Components**: [shadcn/ui](https://ui.shadcn.com/)
+* **Theming**: [next-themes](https://github.com/pacocoursey/next-themes)
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🚀 Getting Started
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+To get a local copy up and running, follow these simple steps.
 
-## Deploy on Vercel
+### Prerequisites
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Make sure you have Node.js and npm (or yarn/pnpm) installed on your machine.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Installation
+
+1.  **Clone the repo**
+    ```sh
+    git clone [https://github.com/InnovatorCodes/expense-tracker.git](https://github.com/InnovatorCodes/expense-tracker.git)
+    ```
+2.  **Navigate to the project directory**
+    ```sh
+    cd expense-tracker
+    ```
+3.  **Install NPM packages**
+    ```sh
+    npm install
+    ```
+4.  **Set up environment variables**
+
+    Create a `.env.local` file in the root of your project and add the following environment variables. You will need to get your own credentials from Google, MongoDB, and Firebase.
+
+    ```env
+    # Auth.js
+    AUTH_SECRET="YOUR_AUTH_SECRET"
+    AUTH_URL="http://localhost:3000/api/auth"
+    GOOGLE_CLIENT_ID="YOUR_GOOGLE_CLIENT_ID"
+    GOOGLE_CLIENT_SECRET="YOUR_GOOGLE_CLIENT_SECRET"
+
+    # MongoDB
+    MONGODB_URI="YOUR_MONGODB_CONNECTION_STRING"
+
+    # Firebase
+    NEXT_PUBLIC_FIREBASE_API_KEY="YOUR_FIREBASE_API_KEY"
+    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="YOUR_FIREBASE_AUTH_DOMAIN"
+    NEXT_PUBLIC_FIREBASE_PROJECT_ID="YOUR_FIREBASE_PROJECT_ID"
+    NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="YOUR_FIREBASE_STORAGE_BUCKET"
+    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="YOUR_FIREBASE_MESSAGING_SENDER_ID"
+    NEXT_PUBLIC_FIREBASE_APP_ID="YOUR_FIREBASE_APP_ID"
+
+    # Add any other variables you have used
+    ```
+
+5.  **Run the development server**
+    ```sh
+    npm run dev
+    ```
+
+    Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+---
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
