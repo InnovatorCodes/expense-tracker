@@ -11,11 +11,11 @@ import DashboardBudget from '@/components/dashboard-budget';
 import { DashboardFloatingButton } from '@/components/floating-action-button';
 import TransactionModal from '@/components/add-transaction-modal';
 import { TransactionType } from '@/types/transaction';
-import { Toaster } from 'sonner';
+import { Toaster, toast} from 'sonner';
 import BudgetModal from '@/components/add-budget-modal';
 
 import { useExchangeRates } from '@/providers/exchange-rates-provider';
-import { Loader2, AlertCircle } from 'lucide-react'; // Icons for loading/error states
+import { Loader2 } from 'lucide-react'; // Icons for loading/error states
 
 const defaultCurrency="INR";
 
@@ -43,9 +43,6 @@ export default function DashboardPage() {
     setIsBudgetModalOpen(false); // Close modal on success
   };
 
-  // Display loading states for core data (default currency, exchange rates)
-  // We still need loading states for the data fetched *client-side* by the providers,
-  // even if the user is already authenticated on the server.
   if (loadingExchangeRates) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -53,7 +50,6 @@ export default function DashboardPage() {
           <Loader2 className="h-10 w-10 animate-spin mx-auto text-blue-600 dark:text-blue-400 mb-4" />
           <p className="text-lg text-gray-700 dark:text-gray-300">
             {loadingExchangeRates && "Fetching latest exchange rates..."}
-            {loadingExchangeRates && "Loading dashboard data..."}
           </p>
         </div>
       </div>
@@ -62,15 +58,7 @@ export default function DashboardPage() {
 
   // Handle errors from exchange rates fetch (still relevant even if authenticated)
   if (errorExchangeRates) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="text-center p-8 bg-orange-100 rounded-lg text-orange-700 dark:bg-orange-900/20 dark:text-orange-300 shadow-lg">
-          <AlertCircle className="h-10 w-10 mx-auto mb-4" />
-          <p className="font-semibold text-xl mb-2">Currency Rates Warning</p>
-          <p className="text-md">Could not fetch latest exchange rates. Data may be using default or slightly outdated rates.</p>
-        </div>
-      </div>
-    );
+    toast.error("Could not fetch latest exchange rates. Data may be using default or slightly outdated rates.")
   }
 
   // Final check to ensure currency and rates are available before rendering main content
@@ -89,10 +77,6 @@ export default function DashboardPage() {
       </div>
     );
   }
-
-  // Now, we can assume isAuthenticated is true because the page would have been redirected otherwise.
-  // The 'isAuthenticated' from useDefaultCurrency is still useful if components deeper in the tree
-  // need to know if the current currency setting is user-specific or a general default.
 
   return (
     <section className="p-6">

@@ -1,5 +1,6 @@
 // app/page.tsx
 import { DollarSign, BarChart, ShieldCheck, ArrowRight } from 'lucide-react';
+import { ThemeButton } from '@/components/theme-button';
 import Link from 'next/link';
 
 export default function LandingPage() {
@@ -7,20 +8,14 @@ export default function LandingPage() {
     <div className="flex flex-col min-h-screen">
       {/* Header */}
       <header className="px-4 lg:px-6 h-16 flex items-center bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50">
-        <a className="flex items-center justify-center" href="#">
-          <DollarSign className="h-6 w-6 text-indigo-600" />
-          <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">SpendSense</span>
-        </a>
-        <nav className="ml-auto flex gap-4 sm:gap-6">
-          <a className="text-sm font-medium hover:underline underline-offset-4 text-gray-600 dark:text-gray-300" href="#">
-            Features
-          </a>
-          <a className="text-sm font-medium hover:underline underline-offset-4 text-gray-600 dark:text-gray-300" href="#">
-            Pricing
-          </a>
-          <a className="text-sm font-medium hover:underline underline-offset-4 text-gray-600 dark:text-gray-300" href="#">
-            About
-          </a>
+        <Link href='/' className="flex items-center justify-center mr-auto" >
+          <div className="bg-indigo-600 p-2 rounded-lg">
+            <DollarSign className="text-white" size={28} />
+          </div>
+          <span className="ml-2 text-3xl font-bold text-gray-900 dark:text-white">SpendSense</span>
+        </Link>
+        <nav className="flex items-center gap-4 sm:gap-6">
+          <ThemeButton></ThemeButton>
           <Link href='/auth/login' className="px-4 py-2 text-sm font-medium rounded-md text-indigo-600 hover:bg-indigo-50 dark:hover:bg-gray-800">Login</Link>
           <Link href='/dashboard' className="px-4 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">Get Started</Link>
         </nav>
@@ -39,7 +34,7 @@ export default function LandingPage() {
               </p>
               <div className="flex flex-col gap-2 min-[400px]:flex-row justify-center">
                 <Link href="/dashboard" className="inline-flex h-10 items-center justify-center rounded-md bg-indigo-600 px-8 text-sm font-medium text-white shadow transition-colors hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
-                  Start Tracking for Free
+                  Track your Expenses
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </div>

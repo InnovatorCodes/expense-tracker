@@ -19,7 +19,7 @@ export const login= async (data: z.infer<typeof loginSchema>)=>{
     });
 
     if(!userExists) return { error: "User Not Found"};
-    else if(!userExists.password || !userExists.email) return {error: "It looks like you signed up with Google. Please try logging in with your Google account instead."};
+    else if(!userExists.password || !userExists.email) return {error: "Looks like you signed up with Google. Please login with Google instead."};
     
     try {
         await signIn("credentials", {

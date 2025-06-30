@@ -73,8 +73,6 @@ export function PastWeekChart({currency, exchangeRates}: {currency: string, exch
     setError(""); // Clear any previous errors if we're proceeding with a user
     setLoading(true); // Set loading true while waiting for the first snapshot
 
-    console.log(`PastWeekChart: Setting up real-time listener for user: ${userId}`);
-
     // Subscribe to daily income/expenses for the last 7 days
     const unsubscribe = subscribeToPastWeekTransactions(
       userId,
@@ -105,7 +103,7 @@ export function PastWeekChart({currency, exchangeRates}: {currency: string, exch
 
   if (loading) {
     return (
-      <Card className="dark:bg-gray-800 animate-pulse h-full flex items-center justify-center">
+      <Card className="dark:bg-gray-800 h-full flex items-center justify-center">
         <CardContent className="p-6 text-center text-gray-500 dark:text-gray-400">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3" />
           <p>Loading past week data...</p>

@@ -23,12 +23,6 @@ const TransactionsPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [selectedTransactionType, setSelectedTransactionType] = React.useState<TransactionType>('expense');
 
-  // Removed: const [currency, setCurrency] = useState("INR");
-  // Removed: const [exchangeRates, setExchangeRates] = useState<Record<string, number>>({});
-
-  // Consume default currency and its loading state from the context
-
-  // Consume exchange rates and their loading/error states from the context
   const { exchangeRates, loadingExchangeRates, errorExchangeRates } = useExchangeRates();
 
   const { data: session, status } = useSession(); // Still needed to get userId for TransactionList
@@ -44,12 +38,6 @@ const TransactionsPage: React.FC = () => {
     setIsModalOpen(false); // Close modal on success
   };
 
-  // Removed: useEffect for default currency fetch
-  // Removed: useEffect for exchange rates fetch
-
-  // Display loading states for core data (default currency, exchange rates)
-  // These components will still need the userId for their own internal Firestore fetches,
-  // but the currency and rates are global.
   if (status === 'loading' || loadingExchangeRates) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">

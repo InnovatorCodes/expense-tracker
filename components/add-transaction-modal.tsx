@@ -77,6 +77,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
 
   const transactionType = form.watch("type");
   const categoriesToShow = transactionType === 'expense' ? expenseCategories : incomeCategories;
+  const selectedCurrency=form.watch("currency");
 
   const getCurrencySymbol = (currencyCode:string) => {
       if (currencySymbols[currencyCode as keyof typeof currencySymbols]) {
@@ -174,7 +175,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                   <FormControl>
                     <div className="relative flex items-center">
                       <span className="absolute left-3 text-gray-500 dark:text-gray-400">
-                        {getCurrencySymbol(currency)}
+                        {getCurrencySymbol(selectedCurrency)}
                       </span>
                       <Input
                         type="number"

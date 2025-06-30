@@ -1,7 +1,3 @@
-// components/LoginPage.tsx
-// This component provides a modern and responsive login page
-// using NextAuth.js for authentication and shadcn/ui for styling.
-
 "use client"; // This component needs to be a Client Component due to interactive elements and hooks.
 
 import React, { useState } from 'react';

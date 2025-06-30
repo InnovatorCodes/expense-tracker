@@ -122,10 +122,10 @@ const TransactionList = ({currency, exchangeRates}: {currency: string,exchangeRa
 
   return (
     <>
-      <Card className="w-full dark:bg-gray-800 shadow-lg rounded-lg">
+      <Card className="w-full dark:bg-gray-800 shadow-lg rounded-lg min-w-max">
         <CardHeader className='flex'>
           <div className='flex flex-col mr-auto'>
-            <CardTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">All Transactions</CardTitle>
+            <CardTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">Monthly Transactions</CardTitle>
             <CardDescription className="text-gray-600 dark:text-gray-300">
               A detailed list of your income and expenses.
             </CardDescription>
@@ -155,7 +155,7 @@ const TransactionList = ({currency, exchangeRates}: {currency: string,exchangeRa
         </CardHeader>
         <CardContent className="space-y-4">
           {transactions.length === 0 ? (
-            <div className="text-center p-8 text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-700 rounded-md">
+            <div className="text-center p-8 text-gray-400 bg-gray-100 dark:bg-gray-700 rounded-md">
               <Info className="h-8 w-8 mx-auto mb-3" />
               <p className="font-semibold">No transactions recorded yet.</p>
               <p className="text-sm">Use the &apos;+&apos; button to add your first income or expense!</p>

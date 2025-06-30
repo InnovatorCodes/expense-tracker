@@ -3,11 +3,9 @@
 
 import { auth } from '@/auth'; // Import the server-side auth function
 import { redirect } from 'next/navigation'; // Server-side redirect function
+import Link from 'next/link';
+import { DollarSign } from 'lucide-react';
 
-// You can also import and render your application's common UI elements here,
-// like a Navbar, Sidebar, or Footer, that should appear on all dashboard pages.
-// import Navbar from '@/components/Navbar'; // Assuming you have a global Navbar
-// import Sidebar from '@/components/Sidebar'; // If you have a dashboard-specific sidebar
 
 export default async function AuthenticatedLayout({
   children,
@@ -28,6 +26,13 @@ export default async function AuthenticatedLayout({
   // You can also wrap `children` with common dashboard UI elements (Navbar, Sidebar etc.)
   return (
     <>
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <Link href='/' className="absolute top-0 left-0 ml-4 mt-4 flex items-center justify-center mr-auto" >
+      <div className="bg-indigo-600 p-2 rounded-lg">
+        <DollarSign className="text-white" size={28} />
+      </div>
+      <span className="ml-2 text-3xl font-bold text-gray-900 dark:text-white">SpendSense</span>
+    </Link>
     {children}
     </>
   );

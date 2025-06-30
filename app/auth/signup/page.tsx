@@ -163,7 +163,6 @@ const SignUpPage: React.FC = () => {
                     </FormItem>
                 )}
               />
-              {/* Assuming passwordConfirmation is part of your Zod schema and needed for validation */}
               <FormField
                 control={form.control}
                 name="passwordConfirmation"

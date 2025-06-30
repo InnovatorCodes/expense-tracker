@@ -79,7 +79,7 @@ const RecentTransactions = () => {
             <p>Loading recent transactions...</p>
           </div>
         ) : recentTransactions.length === 0 ? (
-          <div className="text-center p-8 text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-700 rounded-md">
+          <div className="text-center p-8 text-gray-400 bg-gray-100 dark:bg-gray-700 rounded-md">
             <Info className="h-8 w-8 mx-auto mb-3" />
             <p className="font-semibold">No transactions recorded yet.</p>
             <p className="text-sm">Add one using the &apos;+&apos; button!</p>

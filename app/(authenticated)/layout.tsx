@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'; // Server-side redirect function
 import Sidebar from '@/components/sidebar'; // Import your Sidebar component
 import { Metadata } from 'next'; // Import Metadata type for page metadata
 import { ThemeButton } from '@/components/theme-button';
+import { ReactNode } from 'react';
 
 export const metadata: Metadata = {
   title: "SpendSense",
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
 export default async function AuthenticatedLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   // 1. Fetch the session securely on the server.
   const session = await auth();
@@ -30,7 +31,9 @@ export default async function AuthenticatedLayout({
           <ThemeButton />
         </div>
       <Sidebar />
-      <main className="p-6 flex-1 h-full">{children}</main>
+      <main className='p-6 flex-1 h-full'>
+        {children}
+      </main>
     </div>
   );
 }

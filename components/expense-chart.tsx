@@ -131,7 +131,7 @@ export function ExpenseChart({currency, exchangeRates}: {currency: string, excha
 
   if (loading) {
     return (
-      <Card className="flex flex-col bg-gray-800 animate-pulse h-full items-center justify-center">
+      <Card className="flex flex-col bg-gray-800 h-full items-center justify-center">
         <CardContent className="p-6 text-center text-gray-500 dark:text-gray-400">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3" />
           <p>Loading expenses chart...</p>
@@ -162,7 +162,7 @@ export function ExpenseChart({currency, exchangeRates}: {currency: string, excha
       </CardHeader>
       <CardContent className="flex-1 pb-0 px-4">
         {chartData.length === 0 ? (
-          <div className="flex flex-col items-center p-8 text-gray-400 dark:text-gray-500 bg-gray-700 rounded-md m-4">
+          <div className="flex flex-col items-center p-8 text-gray-400 bg-gray-100 dark:bg-gray-700 rounded-md m-4">
             <Info className="h-8 w-auto mb-3" />
             <p className="font-semibold">No expenses recorded for this month.</p>
             <p className="text-sm">Add some transactions to see your spending breakdown!</p>

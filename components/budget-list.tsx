@@ -191,7 +191,7 @@ const BudgetsList = ({currency,exchangeRates}: {currency:string,exchangeRates: R
                               {getCurrencySymbol(currency)+expense?.toFixed(2)} / {getCurrencySymbol(currency)+budget.amount.toFixed(2)}
                             </span>
                           </div>
-                          <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-white dark:bg-gray-200">
+                          <div className="static h-2.5 w-full overflow-hidden rounded-full bg-white dark:bg-gray-200 z-0">
                             <div 
                               className={`h-full rounded-full  bg-indigo-600 transition-all duration-300 ease-in-out`} 
                               style={{width: `${Math.max(0, Math.min(100, percentage))}%`}}>
