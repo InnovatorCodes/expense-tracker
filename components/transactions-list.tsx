@@ -9,31 +9,31 @@ import { useSession } from 'next-auth/react'; // Auth.js client provider
 import { subscribeToTransactions, deleteTransaction } from '@/utils/firebase'; // Import updated Firestore functions
 import { Transaction } from '@/types/transaction'; // Import the Transaction interface
 import EditTransactionModal from './edit-transaction-modal';
+import { toast } from 'sonner';
 // Shadcn/ui components
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {Trash2, Info,Loader2,Edit, ChevronLeft,ChevronRight } from 'lucide-react'
 import { Button } from "@/components/ui/button";
 import { categoryIcons } from '@/utils/categories';
+import { currencySymbols } from '@/utils/currencies';
 
 
-const TransactionList: React.FC<{currency: string}> = ({currency}) => {
+const TransactionList = ({currency, exchangeRates}: {currency: string,exchangeRates:Record<string,number>}) => {
   const { data: session, status } = useSession(); // Get session data and status from Auth.js
   const userId = session?.user?.id; // The user ID from Auth.js session
-
+  
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loadingTransactions, setLoadingTransactions] = useState(true);
   const [editTransaction,setEditTransaction]=useState<Transaction | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
-  const getCurrencySymbol = () => {
-    switch (currency) {
-      case 'USD':
-        return '$';
-      default:
-        return '₹';
+ const getCurrencySymbol = (currencyCode:string) => {
+    if (currencySymbols[currencyCode as keyof typeof currencySymbols]) {
+      return currencySymbols[currencyCode as keyof typeof currencySymbols];
     }
-  }; 
+    else return currencyCode
+  };
 
   const getMonthName = (date: Date) => {
     const options: Intl.DateTimeFormatOptions = { month: 'long' };
@@ -87,15 +87,14 @@ const TransactionList: React.FC<{currency: string}> = ({currency}) => {
   const handleDeleteTransaction = async (transactionId: string) => {
     if (!userId) {
       console.warn("User not authenticated for deletion.");
-      // TODO: Display user-friendly message (e.g., toast)
       return;
     }
     try {
-      await deleteTransaction(userId, transactionId);
-      // No need to manually update state, onSnapshot will handle it.
+      await deleteTransaction(userId, transactionId,exchangeRates);
+      toast.success("Transaction deleted successfully")
     } catch (e) {
       console.error("Failed to delete transaction:", e);
-      // TODO: Display user-friendly error message
+      toast.error("Failed to delete transaction")
     }
   };
 
@@ -202,7 +201,7 @@ const TransactionList: React.FC<{currency: string}> = ({currency}) => {
                     <span className={`text-xl font-bold
                       ${transaction.type === 'income' ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}
                     `}>
-                      {getCurrencySymbol()+transaction.amount.toFixed(2)}
+                      {getCurrencySymbol(transaction.currency)+transaction.amount.toFixed(2)}
                     </span>
                     <Button
                       variant="ghost" // Use a ghost variant for a subtle button
@@ -235,6 +234,7 @@ const TransactionList: React.FC<{currency: string}> = ({currency}) => {
       transaction={editTransaction}
       onSave={handleTransactionSaved}
       currency={currency}
+      exchangeRates={exchangeRates}
        />
     </>
   );

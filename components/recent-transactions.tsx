@@ -9,8 +9,9 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react'; // Added useCallback
 import { Transaction } from '@/types/transaction';
 import { categoryIcons } from '@/utils/categories';
+import { currencySymbols } from '@/utils/currencies';
 
-const RecentTransactions = ({currency}: {currency:string}) => {
+const RecentTransactions = () => {
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true); // Separate loading state for this component
   const [error, setError] = useState("");
@@ -50,17 +51,12 @@ const RecentTransactions = ({currency}: {currency:string}) => {
     };
   }, [userId, status]); // Re-run effect if userId or auth status changes. No need for refreshTrigger.
 
-  const getCurrencySymbol = () => {
-    switch (currency) {
-      case 'INR':
-        return '₹';
-      case 'USD':
-        return '$';
-      default:
-        return currency;
+  const getCurrencySymbol = (currencyCode:string) => {
+    if (currencySymbols[currencyCode as keyof typeof currencySymbols]) {
+      return currencySymbols[currencyCode as keyof typeof currencySymbols];
     }
+    else return currencyCode
   };
-
 
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md flex flex-col h-full border-border dark:border-border">
@@ -107,7 +103,7 @@ const RecentTransactions = ({currency}: {currency:string}) => {
                 </div>
                 <div className="flex items-center gap-2">
                     <p className={`font-semibold ${t.type === 'expense' ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-                        {t.type=='expense'?'-':'+'}{getCurrencySymbol()+t.amount.toFixed(2)}
+                        {t.type=='expense'?'-':'+'}{getCurrencySymbol(t.currency)+t.amount.toFixed(2)}
                     </p>
                     {/* The ellipsis button is often for more options like Edit/Delete.
                         If deletion is needed, consider an icon button like Trash2.

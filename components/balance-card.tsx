@@ -5,8 +5,9 @@ import { subscribeToBalance, subscribeToMonthlyTotals } from '@/utils/firebase';
 import { ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card'; // Shadcn/ui components
+import { currencySymbols } from '@/utils/currencies';
 
-const BalanceCard = ({currency}: {currency:string}) => {
+const BalanceCard = ({currency, exchangeRates}: {currency: string,exchangeRates: Record<string, number>}) => {
   const { data: session, status } = useSession();
   const userId = session?.user?.id;
 
@@ -37,8 +38,7 @@ const BalanceCard = ({currency}: {currency:string}) => {
         setIncome(income);
         setExpenses(expenses);
         setLoading(false); // Set loading to false once all data is fetched
-        console.log("BalanceDisplay: Monthly totals updated. Income:", income, "Expenses:", expenses);
-      });
+      }, exchangeRates);
 
 
       // Also fetch the user's default currency
@@ -57,18 +57,14 @@ const BalanceCard = ({currency}: {currency:string}) => {
         unsubscribeMonthlyTotals();
       }
     };
-  }, [userId, status]); // Re-run when user ID or auth status changes
+  }, [userId, status,exchangeRates]); // Re-run when user ID or auth status changes
 
-  const getCurrencySymbol = () => {
-    switch (currency) {
-      case 'INR':
-        return '₹';
-      case 'USD':
-        return '$';
-      default:
-        return currency;
-    }
-  };
+  const getCurrencySymbol = (currencyCode:string) => {
+      if (currencySymbols[currencyCode as keyof typeof currencySymbols]) {
+        return currencySymbols[currencyCode as keyof typeof currencySymbols];
+      }
+      else return currencyCode
+    };
 
   if (status === 'loading' || loading) return (
       <Card className="dark:bg-gray-800">
@@ -84,7 +80,7 @@ const BalanceCard = ({currency}: {currency:string}) => {
       <div className="flex justify-between items-start">
           <div>
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Current Balance</p>
-            <p className="text-3xl font-bold text-gray-800 dark:text-white mt-1">{getCurrencySymbol()}{balance}</p>
+            <p className="text-3xl font-bold text-gray-800 dark:text-white mt-1">{getCurrencySymbol(currency)}{balance.toFixed(2)}</p>
              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">As of {new Date().toLocaleDateString()}</p>
           </div>
       </div>
@@ -95,7 +91,7 @@ const BalanceCard = ({currency}: {currency:string}) => {
               </div>
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Income this Month</p>
-                <p className="text-lg font-semibold text-gray-800 dark:text-white">{getCurrencySymbol()}{income}</p>
+                <p className="text-lg font-semibold text-gray-800 dark:text-white">{getCurrencySymbol(currency)}{income.toFixed(2)}</p>
               </div>
           </div>
           <div className="flex items-center gap-4 p-4 bg-red-50 dark:bg-red-900/50 rounded-lg">
@@ -104,7 +100,7 @@ const BalanceCard = ({currency}: {currency:string}) => {
               </div>
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Expenses this Month</p>
-                <p className="text-lg font-semibold text-gray-800 dark:text-white">{getCurrencySymbol()}{expenses}</p>
+                <p className="text-lg font-semibold text-gray-800 dark:text-white">{getCurrencySymbol(currency)}{expenses.toFixed(2)}</p>
               </div>
           </div>
       </div>

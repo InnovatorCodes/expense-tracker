@@ -36,7 +36,7 @@ const COLORS = [
   "var(--chart-9)", "var(--chart-10)"
 ];
 
-export function ExpenseChart({currency}: {currency: string}) {
+export function ExpenseChart({currency, exchangeRates}: {currency: string, exchangeRates: Record<string,number>}) {
   const { data: session, status } = useSession();
   const userId = session?.user?.id;
 
@@ -116,14 +116,15 @@ export function ExpenseChart({currency}: {currency: string}) {
           setChartData(topCategories);
           setChartConfig(newChartConfig);
           setLoading(false); // Data received, stop loading
-        }
+        },
+        exchangeRates
       );
       return () => {
       unsubscribe();
     };
     }
     // Return the unsubscribe function for cleanup
-  }, [userId, status]);
+  }, [userId, status,exchangeRates]);
 
   // Function to fetch and process categorized expenses
   

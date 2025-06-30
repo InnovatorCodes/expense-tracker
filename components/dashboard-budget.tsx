@@ -12,9 +12,10 @@ import { Budget } from '@/types/budget'; // Import the Transaction interface
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Info,Loader2 } from 'lucide-react'
 import { categoryIcons } from '@/utils/categories';
+import { currencySymbols } from '@/utils/currencies';
 
 
-const DashboardBudget: React.FC<{currency: string}> = ({currency}) => {
+const DashboardBudget: React.FC<{currency: string; exchangeRates: Record<string,number>}> = ({currency, exchangeRates}) => {
   const { data: session, status } = useSession(); // Get session data and status from Auth.js
   const userId = session?.user?.id; // The user ID from Auth.js session
 
@@ -22,14 +23,12 @@ const DashboardBudget: React.FC<{currency: string}> = ({currency}) => {
   const [budget, setBudget] = useState<Budget>();
   const [loading, setLoading] = useState(true);
 
-  const getCurrencySymbol = () => {
-    switch (currency) {
-      case 'USD':
-        return '$';
-      default:
-        return '₹';
+const getCurrencySymbol = (currencyCode:string) => {
+    if (currencySymbols[currencyCode as keyof typeof currencySymbols]) {
+      return currencySymbols[currencyCode as keyof typeof currencySymbols];
     }
-  }; 
+    else return currencyCode
+  };
 
   let budgetComponent;
   
@@ -53,7 +52,7 @@ const DashboardBudget: React.FC<{currency: string}> = ({currency}) => {
                 <div className="flex items-center justify-between text-gray-800 text-base mb-1">
                 <span className="font-medium text-black dark:text-white">Used:</span>
                 <span className="ml-2 text-black dark:text-white font-semibold">
-                    {getCurrencySymbol()+expense?.toFixed(2)} / {getCurrencySymbol()+budget.amount.toFixed(2)}
+                    {getCurrencySymbol(currency)+expense?.toFixed(2)} / {getCurrencySymbol(currency)+budget.amount.toFixed(2)}
                 </span>
                 </div>
                 <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-white dark:bg-gray-200">
@@ -63,7 +62,7 @@ const DashboardBudget: React.FC<{currency: string}> = ({currency}) => {
                 </div>
                 </div>
                 <span className="text-xs text-black dark:text-gray-400 mt-1 block text-right">
-                {percentage || 0}% Used
+                {percentage.toFixed(2) || 0}% Used
                 </span>
             </div>
             )}
@@ -93,7 +92,7 @@ const DashboardBudget: React.FC<{currency: string}> = ({currency}) => {
     return () => {
       if (unsubscribe) unsubscribe();
     };
-  }, [userId, status]); // Re-run effect if userId or authentication status changes
+  }, [userId, status,exchangeRates]); // Re-run effect if userId or authentication status changes
 
   useEffect(()=>{
     const now=new Date;
@@ -107,11 +106,12 @@ const DashboardBudget: React.FC<{currency: string}> = ({currency}) => {
         currentMonth,
         (categoryExpenses)=>{
           setCategoryExpenses(categoryExpenses)
-        }
+        },
+        exchangeRates
       );
       return ()=>unsubscribe();
     } 
-  },[status,userId])
+  },[status,userId,exchangeRates])
 
   if (status === 'loading' || loading) {
     return (

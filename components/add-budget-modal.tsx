@@ -9,6 +9,7 @@ import { Loader2, Wallet } from 'lucide-react'; // Icons for loading, add, close
 import { categoryIcons,budgetCategories } from '@/utils/categories';
 import { budgetFormSchema } from '@/schemas/budget-schema';
 import { createBudget } from '@/actions/budget';
+import { currencySymbols } from '@/utils/currencies';
 
 // Shadcn/ui components
 import { Button } from "@/components/ui/button";
@@ -49,15 +50,12 @@ interface BudgetModalProps {
 }
 const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess, currency }) => {
   const[loading,setLoading]=useState(false);
-  const getCurrencySymbol = () => {
-    switch (currency) {
-      case 'INR':
-        return '₹';
-      case 'USD':
-        return '$';
-      default:
-        return ''; // Or a default symbol if needed
+
+  const getCurrencySymbol = (currencyCode:string) => {
+    if (currencySymbols[currencyCode as keyof typeof currencySymbols]) {
+      return currencySymbols[currencyCode as keyof typeof currencySymbols];
     }
+    else return currencyCode
   };
 
   const form = useForm<CreateBudgetFormInput>({
@@ -146,7 +144,7 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess, c
                   <FormControl>
                     <div className='relative flex items-center'>
                         <span className="absolute left-3 text-gray-500 dark:text-gray-400">
-                            {getCurrencySymbol()}
+                            {getCurrencySymbol(currency)}
                         </span>
                         <Input
                         type="number"

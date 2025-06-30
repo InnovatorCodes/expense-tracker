@@ -1,3 +1,4 @@
+// components/HelpPage.tsx
 "use client";
 import React, { useState } from 'react';
 
@@ -84,6 +85,12 @@ const faqData = [
     question: "How do I change the app's theme?",
     answer: (
       <p>You can customize the app{"'"}s appearance by clicking the <strong>theme button</strong> (a sun or moon icon) located in the top right corner of the screen.</p>
+    ),
+  },
+  {
+    question: "Are currency conversions exact?",
+    answer: (
+      <p>Conversions between different currencies are based on the latest available exchange rates and are for approximate guidance only. Due to constant fluctuations in currency markets, these converted values may differ slightly from real-time or exact transaction values.</p>
     ),
   },
 ];

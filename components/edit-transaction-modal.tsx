@@ -9,6 +9,7 @@ import { Transaction } from '@/types/transaction';
 import { transactionSchema } from '@/schemas/transaction-schema';
 import { Button } from '@/components/ui/button';
 import { categoryIcons,expenseCategories,incomeCategories } from '@/utils/categories';
+import { currencies, currencySymbols } from '@/utils/currencies';
 import {
   Dialog,
   DialogContent,
@@ -43,9 +44,8 @@ interface EditTransactionModalProps {
   transaction: Transaction | null;
   onSave: () => void;
   currency: string; // Pass the user's default currency
+  exchangeRates: Record<string, number>
 }
-
-
 
 const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
   isOpen,
@@ -53,6 +53,7 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
   transaction,
   onSave,
   currency,
+  exchangeRates
 }) => {
   const [loading, setLoading] = useState(false);
 
@@ -62,6 +63,7 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
       name: "",
       amount: 0,
       type: "expense",
+      currency: currency,
       category: "",
       // Format date for input[type="date"] (YYYY-MM-DD)
       date: new Date().toISOString().split('T')[0], // Assuming  is already in 'YYYY-MM-DD' string format
@@ -71,6 +73,7 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
 
   const transactionType = form.watch("type");
   const categoriesToShow = transactionType === 'expense' ? expenseCategories : incomeCategories;
+  const selectedCurrency=form.watch("currency");
 
   useEffect(()=>{
     form.reset({
@@ -83,46 +86,42 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
     })
   },[form,transaction])
 
-  const getCurrencySymbol = () => {
-    switch (currency) {
-      case 'INR':
-        return '₹';
-      case 'USD':
-        return '$';
-      default:
-        return ''; // Or a default symbol if needed
+  const getCurrencySymbol = (currencyCode:string) => {
+    if (currencySymbols[currencyCode as keyof typeof currencySymbols]) {
+      return currencySymbols[currencyCode as keyof typeof currencySymbols];
     }
+    else return currencyCode
   };
 
-    const onSubmit = async (data: z.infer<typeof transactionSchema>) => {
-        setLoading(true);
-        form.clearErrors(); // Clear client-side errors
-    
-        if(transaction){
-          try {
-            const result=await modifyTransaction(data,transaction);
-      
-            if (result.error) {
-              setLoading(false);
-              toast.error(result.error);
-            } else if (result.success) {
-              setLoading(false);
-              toast.success(result.success);
-              form.reset({ // Reset form to default values on success
-                name: "",
-                category: "",
-                date: new Date().toISOString().split('T')[0],
-                type: "expense", // Reset to the initial type provided
-                notes: "",
-              });
-              onSave(); // Call success callback to close modal
-            }
-          } catch (e) {
-            console.error("Failed to submit form:", e);
-            toast.error("An unexpected error occurred.");
-          }
+  const onSubmit = async (data: z.infer<typeof transactionSchema>) => {
+    setLoading(true);
+    form.clearErrors(); // Clear client-side errors
+
+    if(transaction){
+      try {
+        const result=await modifyTransaction(data,transaction, exchangeRates);
+  
+        if (result.error) {
+          setLoading(false);
+          toast.error(result.error);
+        } else if (result.success) {
+          setLoading(false);
+          toast.success(result.success);
+          form.reset({ // Reset form to default values on success
+            name: "",
+            category: "",
+            date: new Date().toISOString().split('T')[0],
+            type: "expense", // Reset to the initial type provided
+            notes: "",
+          });
+          onSave(); // Call success callback to close modal
         }
-      };
+      } catch (e) {
+        console.error("Failed to submit form:", e);
+        toast.error("An unexpected error occurred.");
+      }
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -157,7 +156,7 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                     <FormControl>
                         <div className="relative flex items-center">
                         <span className="absolute left-3 text-gray-500 dark:text-gray-400">
-                            {getCurrencySymbol()}
+                            {getCurrencySymbol(selectedCurrency)}
                         </span>
                         <Input
                             type="number"
@@ -166,13 +165,38 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                             min="0.01"
                             {...field}
                             onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
-                            className="pl-8 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600" // Adjusted padding-left
+                            className="pl-10 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600" // Adjusted padding-left
                         />
                         </div>
                     </FormControl>
                     <FormMessage />
                     </FormItem>
                 )}
+                />
+                <FormField
+                  control={form.control}
+                  name="currency" // Name for the currency field
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Currency</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600">
+                            <SelectValue placeholder="Select currency" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600">
+                          {/* Re-using the currencies array from your SettingsPage component */}
+                          {currencies.map((currency) => (
+                            <SelectItem key={currency.value} value={currency.value}>
+                              {currency.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
                 <FormField
                 control={form.control}
@@ -228,7 +252,6 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                     <FormLabel>Type</FormLabel>
                     <Select onValueChange={(value: "income" | "expense")=>{
                       field.onChange(value)
-                      form.setValue("category",value)
                     }} defaultValue={field.value}>
                         <FormControl>
                         <SelectTrigger className="dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600">

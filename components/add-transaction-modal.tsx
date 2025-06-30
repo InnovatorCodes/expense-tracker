@@ -11,6 +11,7 @@ import { createTransaction } from '@/actions/transaction';
 import * as z from "zod/v4";
 import { Loader2, Wallet } from 'lucide-react'; // For loading spinner, add, cancel icons
 import { toast } from 'sonner';
+import { currencies, currencySymbols } from '@/utils/currencies';
 import { categoryIcons, expenseCategories,incomeCategories } from '@/utils/categories';
 
 // Shadcn/ui components
@@ -46,7 +47,8 @@ interface TransactionModalProps {
   onOpenChange: (open: boolean) => void; // Callback when dialog open state changes
   initialType: TransactionType; // Type to pre-fill the form
   onSuccess: () => void; // Callback for successful form submission
-  currency: string
+  currency: string;
+  exchangeRates: Record<string,number>
 }
 
 const TransactionModal: React.FC<TransactionModalProps> = ({
@@ -54,7 +56,8 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
   onOpenChange,
   initialType,
   onSuccess,
-  currency
+  currency,
+  exchangeRates
 }) => {
 
   const [loading, setLoading] = useState(false);
@@ -64,6 +67,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
     defaultValues: {
       name: "",
       amount: 0, // Default to 0 for amount
+      currency: currency,
       category: "",
       date: new Date().toISOString().split('T')[0], // Default to current date (YYYY-MM-DD)
       type: initialType, // Set initial type from props
@@ -74,23 +78,19 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
   const transactionType = form.watch("type");
   const categoriesToShow = transactionType === 'expense' ? expenseCategories : incomeCategories;
 
-  const getCurrencySymbol = () => {
-    switch (currency) {
-      case 'INR':
-        return '₹';
-      case 'USD':
-        return '$';
-      default:
-        return ''; // Or a default symbol if needed
-    }
-  };
+  const getCurrencySymbol = (currencyCode:string) => {
+      if (currencySymbols[currencyCode as keyof typeof currencySymbols]) {
+        return currencySymbols[currencyCode as keyof typeof currencySymbols];
+      }
+      else return currencyCode
+    };
 
   const onSubmit = async (data: z.infer<typeof transactionSchema>) => {
     setLoading(true);
     form.clearErrors(); // Clear client-side errors
-
+    
     try {
-      const result = await createTransaction(data);
+      const result = await createTransaction(data, exchangeRates);
 
       if (result.error) {
         setLoading(false);
@@ -101,6 +101,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
         form.reset({ // Reset form to default values on success
           name: "",
           category: "",
+          currency: currency,
           date: new Date().toISOString().split('T')[0],
           type: initialType, // Reset to the initial type provided
           notes: "",
@@ -140,6 +141,31 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
               )}
             />
             <FormField
+            control={form.control}
+            name="currency" // Name for the currency field
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Currency</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600">
+                      <SelectValue placeholder="Select currency" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent className="dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600">
+                    {/* Re-using the currencies array from your SettingsPage component */}
+                    {currencies.map((currency) => (
+                      <SelectItem key={currency.value} value={currency.value}>
+                        {currency.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+            <FormField
               control={form.control}
               name="amount"
               render={({ field }) => (
@@ -148,7 +174,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                   <FormControl>
                     <div className="relative flex items-center">
                       <span className="absolute left-3 text-gray-500 dark:text-gray-400">
-                        {getCurrencySymbol()}
+                        {getCurrencySymbol(currency)}
                       </span>
                       <Input
                         type="number"

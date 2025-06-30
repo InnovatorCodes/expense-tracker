@@ -21,6 +21,7 @@ import {
   ChartLegendContent,
   ChartTooltip,
 } from "@/components/ui/chart";
+import { currencySymbols } from '@/utils/currencies';
 
 // Define the interface for the data structure (same as in firestore.ts)
 interface DailyFinancialData {
@@ -40,7 +41,7 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function PastWeekChart({currency}: {currency: string}) { // Renamed from IncomeExpenseBarChart to PastWeekChart as per your query
+export function PastWeekChart({currency, exchangeRates}: {currency: string, exchangeRates: Record<string,number>}) { // Renamed from IncomeExpenseBarChart to PastWeekChart as per your query
   const { data: session, status } = useSession();
   const userId = session?.user?.id;
 
@@ -49,16 +50,12 @@ export function PastWeekChart({currency}: {currency: string}) { // Renamed from 
   const [error, setError] = useState("");
   const [dateRangeLabel, setDateRangeLabel] = useState(''); // For displaying date range
 
-  const getCurrencySymbol = () => {
-  switch (currency) {
-    case 'INR':
-      return '₹';
-    case 'USD':
-      return '$';
-    default:
-      return '';
-  }
-};
+  const getCurrencySymbol = (currencyCode:string) => {
+    if (currencySymbols[currencyCode as keyof typeof currencySymbols]) {
+      return currencySymbols[currencyCode as keyof typeof currencySymbols];
+    }
+    else return currencyCode
+  };
 
   useEffect(() => {
     // If session is still loading or user is not available, handle early exit
@@ -96,14 +93,15 @@ export function PastWeekChart({currency}: {currency: string}) { // Renamed from 
           setDateRangeLabel('');
         }
         setLoading(false); // Data received, stop loading
-      }
+      },
+      exchangeRates
     );
 
     // Cleanup function: unsubscribe when component unmounts or dependencies change
     return () => {
       unsubscribe();
     };
-  }, [userId, status]); // Re-run effect if userId or auth status changes
+  }, [userId, status,exchangeRates]); // Re-run effect if userId or auth status changes
 
   if (loading) {
     return (
@@ -161,7 +159,7 @@ export function PastWeekChart({currency}: {currency: string}) { // Renamed from 
                 tickLine={false}
                 axisLine={false}
                 className="text-xs dark:text-gray-300"
-                tickFormatter={(value) => `${getCurrencySymbol()}${value}`} // Add currency symbol to Y-axis
+                tickFormatter={(value) => `${getCurrencySymbol(currency)}${value}`} // Add currency symbol to Y-axis
               />
               <ChartTooltip
                 cursor={{ fill: 'rgba(0,0,0,0.1)' }}
@@ -170,9 +168,9 @@ export function PastWeekChart({currency}: {currency: string}) { // Renamed from 
                   formatter={(value,name) => {
                     let displayValue = '';
                     if (typeof value === 'number') {
-                      displayValue = `${name+": "+getCurrencySymbol()}${value.toFixed(2)}`;
+                      displayValue = `${name+": "+getCurrencySymbol(currency)}${value.toFixed(2)}`;
                     } else if (typeof value === 'string') {
-                      displayValue = `${name+": "+getCurrencySymbol()}${value}`;
+                      displayValue = `${name+": "+getCurrencySymbol(currency)}${value}`;
                     } 
                     const displayName = "";
                     return [displayValue, displayName];

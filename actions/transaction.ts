@@ -17,7 +17,7 @@ import { Transaction } from "@/types/transaction";
  * @param formData The FormData object submitted from the client form.
  * @returns An object indicating success or error.
  */
-export async function createTransaction(formData: z.infer<typeof transactionSchema>) {
+export async function createTransaction(formData: z.infer<typeof transactionSchema>, exchageRates: Record<string,number>) {
   const session = await auth(); // Get the authenticated user's session on the server
 
   if (!session?.user?.id) {
@@ -32,7 +32,7 @@ export async function createTransaction(formData: z.infer<typeof transactionSche
     }
 
     // Add the transaction to Firestore
-    await addTransaction(session.user.id, validatedData);
+    await addTransaction(session.user.id, validatedData,exchageRates);
 
     return { success: "Transaction added successfully!" };
   } catch (error) {
@@ -47,7 +47,7 @@ export async function createTransaction(formData: z.infer<typeof transactionSche
   }
 }
 
-export async function modifyTransaction(updatedData: z.infer<typeof transactionSchema>,originalTransaction: Transaction ) {
+export async function modifyTransaction(updatedData: z.infer<typeof transactionSchema>,originalTransaction: Transaction, exchangeRates: Record<string, number>) {
   const session = await auth(); // Get the authenticated user's session on the server
 
   if (!session?.user?.id) {
@@ -62,7 +62,7 @@ export async function modifyTransaction(updatedData: z.infer<typeof transactionS
     }
 
     // Add the transaction to Firestore
-    await updateTransaction(session.user.id, originalTransaction.id, updatedData, originalTransaction);
+    await updateTransaction(session.user.id, originalTransaction.id, updatedData, originalTransaction, exchangeRates);
 
     return { success: "Transaction updated successfully!" };
   } catch (error) {

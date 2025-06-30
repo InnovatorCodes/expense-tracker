@@ -163,10 +163,11 @@ export const subscribeToTransactions = (
   const unsubscribe = onSnapshot(q, (snapshot) => {
     const fetchedTransactions: Transaction[] = snapshot.docs.map(doc => {
       const data = doc.data();
-      const transaction: Transaction = {
+      const transaction: Transaction= {
         id: doc.id,
         name: data.name,
         amount: parseFloat(data.amount) || 0, // Ensure amount is parsed as number
+        currency:data.currency,
         category: data.category,
         date: data.date,
         type: data.type, // 'expense' or 'income'
@@ -225,7 +226,8 @@ export const subscribeToMonthlyTotals = (
   userId: string,
   year: number,
   month: number, // 1-indexed month
-  callback: (monthlyIncome: number, monthlyExpenses: number) => void
+  callback: (monthlyIncome: number, monthlyExpenses: number) => void,
+  exchangeRates:Record<string, number>
 ) => {
   if (!userId) {
     console.error("userId is undefined or null");
@@ -256,9 +258,9 @@ export const subscribeToMonthlyTotals = (
       const data = doc.data();
       const amount = parseFloat(data.amount) || 0;
       if (data.type === 'income') {
-        totalIncome += amount;
+        totalIncome += amount*1/(exchangeRates[data.currency]);
       } else if (data.type === 'expense') {
-        totalExpenses += amount;
+        totalExpenses += amount*1/(exchangeRates[data.currency]);
       }
     });
 
@@ -306,6 +308,7 @@ export const subscribeToRecentTransactions = (
         id: doc.id,
         name: data.name,
         amount: parseFloat(data.amount) || 0,
+        currency: data.currency,
         category: data.category,
         date: data.date,
         type: data.type,
@@ -367,6 +370,7 @@ export const getTopTransactionsByAmountForCurrentYear = async (
         id: doc.id,
         name: data.name,
         amount: parseFloat(data.amount) || 0,
+        currency: data.currency,
         category: data.category,
         date: data.date,
         type: data.type,
@@ -399,7 +403,8 @@ export const subscribeToMonthlyCategorizedExpenses = (
   userId: string,
   year: number,
   month: number, // 1-indexed month
-  callback: (categorizedExpenses: { [key: string]: number }) => void
+  callback: (categorizedExpenses: { [key: string]: number }) => void,
+  exchangeRates: Record<string,number>,
 ) => {
   if (!userId) {
     console.error("userId is undefined or null");
@@ -429,9 +434,9 @@ export const subscribeToMonthlyCategorizedExpenses = (
       const category = data.category || 'Other';
       const amount = parseFloat(data.amount) || 0;
       if (categorizedExpenses[category]) {
-        categorizedExpenses[category] += amount;
+        categorizedExpenses[category] += amount*1/(exchangeRates[data.currency]);
       } else {
-        categorizedExpenses[category] = amount;
+        categorizedExpenses[category] = amount*1/(exchangeRates[data.currency]);
       }
     });
 
@@ -446,7 +451,8 @@ export const subscribeToMonthlyCategorizedExpenses = (
 export const subscribeToPastWeekTransactions = (
   userId: string,
   daysAgo: number = 7,
-  callback: (data: DailyFinancialData[]) => void
+  callback: (data: DailyFinancialData[]) => void,
+  exchangeRates: Record<string,number>
 ) => {
   if (!userId) {
     console.error("userId is undefined or null");
@@ -492,9 +498,9 @@ export const subscribeToPastWeekTransactions = (
 
       if (dailyDataMap[date]) { // Ensure date exists in our range
         if (type === 'income') {
-          dailyDataMap[date].income += amount;
+          dailyDataMap[date].income += amount*1/(exchangeRates[data.currency]);
         } else if (type === 'expense') {
-          dailyDataMap[date].expense += amount;
+          dailyDataMap[date].expense += amount*1/(exchangeRates[data.currency]);
         }
       }
     });
@@ -549,6 +555,7 @@ export const subscribeToTopTransactions = (
         id: doc.id,
         name: data.name,
         amount: parseFloat(data.amount) || 0,
+        currency: data.currency,
         category: data.category,
         date: data.date,
         type: data.type,
@@ -581,7 +588,8 @@ export interface DailyFinancialData {
  */
 export const addTransaction = async (
   userId: string,
-  transactionData: Omit<Transaction, 'id' | 'createdAt' | 'userId'>
+  transactionData: Omit<Transaction, 'id' | 'createdAt' | 'userId'>,
+  exchangeRates: Record<string,number>
 ) => {
   try {
     const transactionsCollectionRef = getUserTransactionsCollectionRef(userId);
@@ -590,12 +598,11 @@ export const addTransaction = async (
     // 1. Add the transaction document
     const docRef = await addDoc(transactionsCollectionRef, {
       ...transactionData,
-      userId: userId, // Ensure userId is also stored in the transaction document
       createdAt: serverTimestamp(), // Firestore specific: uses server timestamp
     });
 
     // 2. Atomically update the user's current balance
-    const amountChange = transactionData.type === 'income' ? transactionData.amount : -transactionData.amount;
+    const amountChange = transactionData.type === 'income' ? transactionData.amount*1/(exchangeRates[transactionData.currency]) : -transactionData.amount*1/(exchangeRates[transactionData.currency]);
 
     // Check if the user document exists to ensure we don't try to update a non-existent document
     // If it doesn't exist, create it with the initial balance.
@@ -629,7 +636,8 @@ export const updateTransaction = async (
   userId: string,
   transactionId: string,
   updatedData: Partial<Omit<Transaction, 'id' | 'userId' | 'createdAt'>>,
-  originalTransaction: Transaction // Pass original transaction for balance adjustment
+  originalTransaction: Transaction, // Pass original transaction for balance adjustment
+  exchangeRates: Record<string,number>
 ) => {
   try {
     const transactionDocRef = doc(getUserTransactionsCollectionRef(userId), transactionId);
@@ -639,10 +647,11 @@ export const updateTransaction = async (
     let balanceChange = 0;
 
     // Determine the original value's impact
-    const originalAmountImpact = originalTransaction.type === 'income' ? originalTransaction.amount : -originalTransaction.amount;
+    const originalAmountImpact = originalTransaction.type === 'income' ? originalTransaction.amount*1/(exchangeRates[originalTransaction.currency]) : -originalTransaction.amount*(1/exchangeRates[originalTransaction.currency]);
 
     const newAmount = typeof updatedData.amount === 'string' ? parseFloat(updatedData.amount) : updatedData.amount;
-    const finalNewAmount = newAmount !== undefined ? newAmount : originalTransaction.amount;
+    const currency = updatedData.currency ? updatedData.currency: originalTransaction.currency;
+    const finalNewAmount = newAmount !== undefined ? newAmount * 1 / (exchangeRates[currency]) : originalTransaction.amount * 1 / (exchangeRates[currency]);
 
     const newType = updatedData.type !== undefined ? updatedData.type : originalTransaction.type;
     const newAmountImpact = newType === 'income' ? finalNewAmount : -finalNewAmount;
@@ -671,14 +680,14 @@ export const updateTransaction = async (
  * @param userId The ID of the currently authenticated user.
  * @param transactionId The ID of the transaction document to delete.
  */
-export const deleteTransaction = async (userId: string, transactionId: string) => {
+export const deleteTransaction = async (userId: string, transactionId: string, exchangeRates: Record<string,number>) => {
   try {
     let amountChange =0;
     const transactionDocRef = doc(getUserTransactionsCollectionRef(userId), transactionId);
     await getDoc(transactionDocRef).then((docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        amountChange = data.type === 'income' ? -data.amount : data.amount; // Negate the amount for balance update
+        amountChange = data.type === 'income' ? -data.amount*1/(exchangeRates[data.currency]) : data.amount*1/(exchangeRates[data.currency]); // Negate the amount for balance update
       } else {
         console.warn(`Transaction document with ID ${transactionId} does not exist.`);
         return; // Exit if the document doesn't exist
@@ -712,6 +721,7 @@ interface BudgetData{
 export const subscribeToBudgets= async (
   userId: string,
   budgetCallback: (budgets: Budget[]) => void,
+  exchangeRates: Record<string, number>,
   transactionCallback: (transactions: { [key: string]: number })=>void,
 )=>{
   if (!userId) {
@@ -739,7 +749,7 @@ export const subscribeToBudgets= async (
       if(!categoryAmounts[data.category]){
         categoryAmounts[data.category]=0;
       }
-      categoryAmounts[data.category]+=data.amount;
+      categoryAmounts[data.category]+=data.amount*=1/(exchangeRates[data.currency]);
       categoryAmounts["All"]+=data.amount;
     });
     transactionCallback(categoryAmounts);
@@ -770,7 +780,7 @@ export const subscribeToBudgets= async (
 
 export const subscribeToBudgetDashboard= async (
   userId: string,
-  callback: (budget: Budget | null) => void
+  callback: (budget: Budget | null) => void,
 )=>{
   const userDocRef = getUserDocRef(userId);
   const userDocSnapshot = await getDoc(userDocRef);
