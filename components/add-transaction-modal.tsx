@@ -1,18 +1,22 @@
 // components/TransactionModal.tsx
 "use client";
 
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 // Your Zod schema for transaction validation
-import { transactionSchema } from '@/schemas/transaction-schema';
+import { transactionSchema } from "@/schemas/transaction-schema";
 // Your Server Action for creating a transaction
-import { createTransaction } from '@/actions/transaction';
+import { createTransaction } from "@/actions/transaction";
 import * as z from "zod/v4";
-import { Loader2, Wallet } from 'lucide-react'; // For loading spinner, add, cancel icons
-import { toast } from 'sonner';
-import { currencies, currencySymbols } from '@/utils/currencies';
-import { categoryIcons, expenseCategories,incomeCategories } from '@/utils/categories';
+import { Loader2, Wallet } from "lucide-react"; // For loading spinner, add, cancel icons
+import { toast } from "sonner";
+import { currencies, currencySymbols } from "@/utils/currencies";
+import {
+  categoryIcons,
+  expenseCategories,
+  incomeCategories,
+} from "@/utils/categories";
 
 // Shadcn/ui components
 import { Button } from "@/components/ui/button";
@@ -40,7 +44,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { TransactionType } from '@/types/transaction'; // Import TransactionType
+import { TransactionType } from "@/types/transaction"; // Import TransactionType
 
 interface TransactionModalProps {
   isOpen: boolean;
@@ -48,7 +52,7 @@ interface TransactionModalProps {
   initialType: TransactionType; // Type to pre-fill the form
   onSuccess: () => void; // Callback for successful form submission
   currency: string;
-  exchangeRates: Record<string,number>
+  exchangeRates: Record<string, number>;
 }
 
 const TransactionModal: React.FC<TransactionModalProps> = ({
@@ -57,9 +61,8 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
   initialType,
   onSuccess,
   currency,
-  exchangeRates
+  exchangeRates,
 }) => {
-
   const [loading, setLoading] = useState(false);
 
   const form = useForm<z.infer<typeof transactionSchema>>({
@@ -69,27 +72,27 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
       amount: 0, // Default to 0 for amount
       currency: currency,
       category: "",
-      date: new Date().toISOString().split('T')[0], // Default to current date (YYYY-MM-DD)
+      date: new Date().toISOString().split("T")[0], // Default to current date (YYYY-MM-DD)
       type: initialType, // Set initial type from props
       notes: "",
     },
   });
 
   const transactionType = form.watch("type");
-  const categoriesToShow = transactionType === 'expense' ? expenseCategories : incomeCategories;
-  const selectedCurrency=form.watch("currency");
+  const categoriesToShow =
+    transactionType === "expense" ? expenseCategories : incomeCategories;
+  const selectedCurrency = form.watch("currency");
 
-  const getCurrencySymbol = (currencyCode:string) => {
-      if (currencySymbols[currencyCode as keyof typeof currencySymbols]) {
-        return currencySymbols[currencyCode as keyof typeof currencySymbols];
-      }
-      else return currencyCode
-    };
+  const getCurrencySymbol = (currencyCode: string) => {
+    if (currencySymbols[currencyCode as keyof typeof currencySymbols]) {
+      return currencySymbols[currencyCode as keyof typeof currencySymbols];
+    } else return currencyCode;
+  };
 
   const onSubmit = async (data: z.infer<typeof transactionSchema>) => {
     setLoading(true);
     form.clearErrors(); // Clear client-side errors
-    
+
     try {
       const result = await createTransaction(data, exchangeRates);
 
@@ -99,11 +102,12 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
       } else if (result.success) {
         setLoading(false);
         toast.success(result.success);
-        form.reset({ // Reset form to default values on success
+        form.reset({
+          // Reset form to default values on success
           name: "",
           category: "",
           currency: currency,
-          date: new Date().toISOString().split('T')[0],
+          date: new Date().toISOString().split("T")[0],
           type: initialType, // Reset to the initial type provided
           notes: "",
         });
@@ -120,14 +124,16 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
       <DialogContent className="sm:max-w-[425px] md:max-w-lg lg:max-w-xl p-6 dark:bg-gray-800 rounded-lg shadow-xl">
         {/* DialogHeader and DialogDescription will be overridden by the CardHeader/Title inside TransactionForm */}
         <DialogHeader>
-          <DialogTitle className='text-2xl font-bold'>Add Transaction</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">
+            Add Transaction
+          </DialogTitle>
           <DialogDescription>
             Fill in the details for your new {initialType}.
           </DialogDescription>
         </DialogHeader>
         {/* Pass props to TransactionForm */}
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}  className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
               name="name"
@@ -135,37 +141,44 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                 <FormItem>
                   <FormLabel>Transaction Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Coffee, Salary" {...field} className="dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600" />
+                    <Input
+                      placeholder="e.g., Coffee, Salary"
+                      {...field}
+                      className="dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <FormField
-            control={form.control}
-            name="currency" // Name for the currency field
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Currency</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger className="dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600">
-                      <SelectValue placeholder="Select currency" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent className="dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600">
-                    {/* Re-using the currencies array from your SettingsPage component */}
-                    {currencies.map((currency) => (
-                      <SelectItem key={currency.value} value={currency.value}>
-                        {currency.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+              control={form.control}
+              name="currency" // Name for the currency field
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Currency</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600">
+                        <SelectValue placeholder="Select currency" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600">
+                      {/* Re-using the currencies array from your SettingsPage component */}
+                      {currencies.map((currency) => (
+                        <SelectItem key={currency.value} value={currency.value}>
+                          {currency.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="amount"
@@ -184,7 +197,9 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                         min="0.01"
                         {...field}
                         max="10000000000"
-                        onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
+                        onChange={(e) =>
+                          field.onChange(parseFloat(e.target.value) || 0)
+                        }
                         className="pl-9 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600" // Adjusted padding-left
                       />
                     </div>
@@ -194,37 +209,50 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
               )}
             />
             <FormField
-            control={form.control}
-            name="category"
-            render={({ field }) => (
+              control={form.control}
+              name="category"
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel>Category</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || ""} disabled={!transactionType}>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value || ""}
+                    disabled={!transactionType}
+                  >
                     <FormControl>
                       <SelectTrigger className="dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600">
-                        <SelectValue placeholder={transactionType ? `Select ${transactionType} category` : "Select a type first"} />
+                        <SelectValue
+                          placeholder={
+                            transactionType
+                              ? `Select ${transactionType} category`
+                              : "Select a type first"
+                          }
+                        />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 max-h-48 overflow-y-auto">
-                      {transactionType && categoriesToShow.map((category) => {
-                        const Icon = categoryIcons[category] || Wallet; // Fallback icon
-                        return (
-                          <SelectItem key={category} value={category}>
-                            <div className="flex items-center gap-2">
-                              <Icon className="h-4 w-4" />
-                              <span>{category}</span>
-                            </div>
-                          </SelectItem>
-                        );
-                      })}
+                      {transactionType &&
+                        categoriesToShow.map((category) => {
+                          const Icon = categoryIcons[category] || Wallet; // Fallback icon
+                          return (
+                            <SelectItem key={category} value={category}>
+                              <div className="flex items-center gap-2">
+                                <Icon className="h-4 w-4" />
+                                <span>{category}</span>
+                              </div>
+                            </SelectItem>
+                          );
+                        })}
                       {!transactionType && (
-                        <SelectItem value="" disabled>Please select a transaction type first.</SelectItem>
+                        <SelectItem value="" disabled>
+                          Please select a transaction type first.
+                        </SelectItem>
                       )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
-            )}
+              )}
             />
             <FormField
               control={form.control}
@@ -233,7 +261,11 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                 <FormItem>
                   <FormLabel>Date</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} className="dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600" />
+                    <Input
+                      type="date"
+                      {...field}
+                      className="dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -245,7 +277,10 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Type</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger className="dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600">
                         <SelectValue placeholder="Select type" />
@@ -267,22 +302,28 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                 <FormItem>
                   <FormLabel>Notes (Optional)</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Any additional details..." {...field} className="dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600" />
+                    <Textarea
+                      placeholder="Any additional details..."
+                      {...field}
+                      className="dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <Button type="submit" disabled={loading} className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-white font-semibold py-2 rounded-md transition-colors duration-200">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-white font-semibold py-2 rounded-md transition-colors duration-200"
+            >
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Adding...
                 </>
               ) : (
-                <>
-                  Add Transaction
-                </>
+                <>Add Transaction</>
               )}
             </Button>
           </form>

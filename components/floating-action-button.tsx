@@ -1,16 +1,18 @@
 // components/FloatingActionButton.tsx
 "use client";
 
-import React, { useState } from 'react';
-import { Plus, ArrowUpCircle, ArrowDownCircle,Wallet } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { TransactionType } from '@/types/transaction'; // Import TransactionType
+import React, { useState } from "react";
+import { Plus, ArrowUpCircle, ArrowDownCircle, Wallet } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { TransactionType } from "@/types/transaction"; // Import TransactionType
 
 interface FloatingActionButtonProps {
   onAddTransaction: (type: TransactionType) => void; // Callback to open form with specific type
 }
 
-export const TransactionFloatingButton: React.FC<FloatingActionButtonProps> = ({ onAddTransaction }) => {
+export const TransactionFloatingButton: React.FC<FloatingActionButtonProps> = ({
+  onAddTransaction,
+}) => {
   const [showOptions, setShowOptions] = useState(false);
 
   const toggleOptions = () => {
@@ -27,14 +29,14 @@ export const TransactionFloatingButton: React.FC<FloatingActionButtonProps> = ({
       {showOptions && (
         <div className="flex flex-col space-y-3 mb-4">
           <Button
-            onClick={() => handleAddTransactionClick('income')}
+            onClick={() => handleAddTransactionClick("income")}
             className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white rounded-full px-5 py-3 shadow-lg transition-all duration-200 ease-in-out"
           >
             <ArrowUpCircle className="h-5 w-5" />
             <span>Add Income</span>
           </Button>
           <Button
-            onClick={() => handleAddTransactionClick('expense')}
+            onClick={() => handleAddTransactionClick("expense")}
             className="flex items-center space-x-2 bg-red-500 hover:bg-red-600 text-white rounded-full px-5 py-3 shadow-lg transition-all duration-200 ease-in-out"
           >
             <ArrowDownCircle className="h-5 w-5" />
@@ -53,8 +55,11 @@ export const TransactionFloatingButton: React.FC<FloatingActionButtonProps> = ({
   );
 };
 
-export const BudgetFloatingButton = ({ onAddBudget }: {onAddBudget: ()=>void}) => {
-
+export const BudgetFloatingButton = ({
+  onAddBudget,
+}: {
+  onAddBudget: () => void;
+}) => {
   const handleClick = () => {
     onAddBudget();
   };
@@ -74,10 +79,13 @@ export const BudgetFloatingButton = ({ onAddBudget }: {onAddBudget: ()=>void}) =
 
 interface DashboardActionButtonProps {
   onAddTransaction: (type: TransactionType) => void; // Callback to open form with specific type
-  onAddBudget: ()=>void;
+  onAddBudget: () => void;
 }
 
-export const DashboardFloatingButton: React.FC<DashboardActionButtonProps> =({ onAddTransaction, onAddBudget })=>{
+export const DashboardFloatingButton: React.FC<DashboardActionButtonProps> = ({
+  onAddTransaction,
+  onAddBudget,
+}) => {
   const [showOptions, setShowOptions] = useState(false);
 
   const toggleOptions = () => {
@@ -89,23 +97,23 @@ export const DashboardFloatingButton: React.FC<DashboardActionButtonProps> =({ o
     setShowOptions(false); // Close options after selection
   };
 
-  const handleAddBudgetClick=()=>{
+  const handleAddBudgetClick = () => {
     onAddBudget();
     setShowOptions(false);
-  }
+  };
   return (
     <div className="fixed bottom-8 right-8 z-50 flex flex-col items-end">
       {showOptions && (
         <div className="flex flex-col space-y-3 mb-4">
           <Button
-            onClick={() => handleAddTransactionClick('income')}
+            onClick={() => handleAddTransactionClick("income")}
             className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white rounded-full px-5 py-3 shadow-lg transition-all duration-200 ease-in-out"
           >
             <ArrowUpCircle className="h-5 w-5" />
             <span>Add Income</span>
           </Button>
           <Button
-            onClick={() => handleAddTransactionClick('expense')}
+            onClick={() => handleAddTransactionClick("expense")}
             className="flex items-center space-x-2 bg-red-500 hover:bg-red-600 text-white rounded-full px-5 py-3 shadow-lg transition-all duration-200 ease-in-out"
           >
             <ArrowDownCircle className="h-5 w-5" />
@@ -128,5 +136,5 @@ export const DashboardFloatingButton: React.FC<DashboardActionButtonProps> =({ o
         <Plus className="h-8 w-8" />
       </Button>
     </div>
-  )
-}
+  );
+};

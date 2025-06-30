@@ -1,23 +1,35 @@
 // app/page.tsx
-import { DollarSign, BarChart, ShieldCheck, ArrowRight } from 'lucide-react';
-import { ThemeButton } from '@/components/theme-button';
-import Link from 'next/link';
+import { DollarSign, BarChart, ShieldCheck, ArrowRight } from "lucide-react";
+import { ThemeButton } from "@/components/theme-button";
+import Link from "next/link";
 
 export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Header */}
       <header className="px-4 lg:px-6 h-16 flex items-center bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50">
-        <Link href='/' className="flex items-center justify-center mr-auto" >
+        <Link href="/" className="flex items-center justify-center mr-auto">
           <div className="bg-indigo-600 p-2 rounded-lg">
             <DollarSign className="text-white" size={28} />
           </div>
-          <span className="ml-2 text-3xl font-bold text-gray-900 dark:text-white">SpendSense</span>
+          <span className="ml-2 text-3xl font-bold text-gray-900 dark:text-white">
+            SpendSense
+          </span>
         </Link>
         <nav className="flex items-center gap-4 sm:gap-6">
           <ThemeButton></ThemeButton>
-          <Link href='/auth/login' className="px-4 py-2 text-sm font-medium rounded-md text-indigo-600 hover:bg-indigo-50 dark:hover:bg-gray-800">Login</Link>
-          <Link href='/dashboard' className="px-4 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">Get Started</Link>
+          <Link
+            href="/auth/login"
+            className="px-4 py-2 text-sm font-medium rounded-md text-indigo-600 hover:bg-indigo-50 dark:hover:bg-gray-800"
+          >
+            Login
+          </Link>
+          <Link
+            href="/dashboard"
+            className="px-4 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+          >
+            Get Started
+          </Link>
         </nav>
       </header>
 
@@ -30,10 +42,14 @@ export default function LandingPage() {
                 Effortless Expense Tracking, Smarter Financial Future.
               </h1>
               <p className="text-lg text-gray-600 dark:text-gray-400">
-                Stop wondering where your money goes. SpendSense helps you take control of your finances with powerful, easy-to-use tools.
+                Stop wondering where your money goes. SpendSense helps you take
+                control of your finances with powerful, easy-to-use tools.
               </p>
               <div className="flex flex-col gap-2 min-[400px]:flex-row justify-center">
-                <Link href="/dashboard" className="inline-flex h-10 items-center justify-center rounded-md bg-indigo-600 px-8 text-sm font-medium text-white shadow transition-colors hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
+                <Link
+                  href="/dashboard"
+                  className="inline-flex h-10 items-center justify-center rounded-md bg-indigo-600 px-8 text-sm font-medium text-white shadow transition-colors hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                >
                   Track your Expenses
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
@@ -53,41 +69,51 @@ export default function LandingPage() {
                 Everything You Need to Manage Your Money
               </h2>
               <p className="max-w-[900px] text-gray-600 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
-                From intuitive tracking to insightful reports, our features are designed to give you a clear view of your financial life.
+                From intuitive tracking to insightful reports, our features are
+                designed to give you a clear view of your financial life.
               </p>
             </div>
             <div className="mx-auto grid max-w-5xl items-start gap-12 py-12 lg:grid-cols-3">
               <div className="grid gap-2 text-center">
                 <div className="flex justify-center">
-                    <div className="flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 dark:bg-indigo-900/50">
-                        <DollarSign className="h-6 w-6 text-indigo-600" />
-                    </div>
+                  <div className="flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 dark:bg-indigo-900/50">
+                    <DollarSign className="h-6 w-6 text-indigo-600" />
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Easy Tracking</h3>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Easy Tracking
+                </h3>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Quickly add expenses and income from any device. Categorize transactions to see where your money goes.
+                  Quickly add expenses and income from any device. Categorize
+                  transactions to see where your money goes.
                 </p>
               </div>
               <div className="grid gap-2 text-center">
                 <div className="flex justify-center">
-                     <div className="flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 dark:bg-indigo-900/50">
-                        <BarChart className="h-6 w-6 text-indigo-600" />
-                    </div>
+                  <div className="flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 dark:bg-indigo-900/50">
+                    <BarChart className="h-6 w-6 text-indigo-600" />
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Visual Reports</h3>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Visual Reports
+                </h3>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Understand your spending habits with clean, simple charts and graphs. Make informed decisions instantly.
+                  Understand your spending habits with clean, simple charts and
+                  graphs. Make informed decisions instantly.
                 </p>
               </div>
               <div className="grid gap-2 text-center">
                 <div className="flex justify-center">
-                    <div className="flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 dark:bg-indigo-900/50">
-                        <ShieldCheck className="h-6 w-6 text-indigo-600" />
-                    </div>
+                  <div className="flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 dark:bg-indigo-900/50">
+                    <ShieldCheck className="h-6 w-6 text-indigo-600" />
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Bank-Level Security</h3>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Bank-Level Security
+                </h3>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Your financial data is serious business. We use top-tier encryption to keep your information safe and private.
+                  Your financial data is serious business. We use top-tier
+                  encryption to keep your information safe and private.
                 </p>
               </div>
             </div>
@@ -97,14 +123,22 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-        <p className="text-xs text-gray-500 dark:text-gray-400">&copy; 2025 SpendSense. All rights reserved.</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          &copy; 2025 SpendSense. All rights reserved.
+        </p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-          <a className="text-xs hover:underline underline-offset-4 text-gray-500" href="#">
+          <a
+            className="text-xs hover:underline underline-offset-4 text-gray-500"
+            href="#"
+          >
             Terms of Service
           </a>
-          <a className="text-xs hover:underline underline-offset-4 text-gray-500" href="#">
+          <Link
+            className="text-xs hover:underline underline-offset-4 text-gray-500"
+            href="https://www.termsfeed.com/live/a30b8dc9-161a-4c40-91f6-23c7202e8b53"
+          >
             Privacy
-          </a>
+          </Link>
         </nav>
       </footer>
     </div>

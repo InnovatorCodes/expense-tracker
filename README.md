@@ -6,29 +6,29 @@ A feature-rich expense tracker application built with modern web technologies to
 
 ## ✨ Features
 
-* **Authentication**: Secure user authentication implemented with **Auth.js**, supporting both credentials-based login and social login with **Google**.
-* **Real-time Data**: Transactions are stored in **Firebase Firestore** with real-time subscriptions, ensuring that your data is always up-to-date across all sessions.
-* **Multi-Currency Support**: Add transactions in 6 different currencies. All financial data is aggregated and displayed in a base currency (INR).
-* **Transaction Management**: Users can easily add, edit, and categorize their transactions.
-* **Budgeting**: Create and manage budgets. Pin your most important budget to the dashboard for quick access.
-* **Data Visualization**: Interactive charts and UI components from **shadcn/ui** to visualize your financial data.
-* **Customizable Theme**: Switch between light and dark themes with **next-themes**.
-* **Responsive Design**: The application is fully responsive and works seamlessly on all devices.
-* **TypeScript**: The entire project is built with **TypeScript**, ensuring type safety and improved developer experience.
+- **Authentication**: Secure user authentication implemented with **Auth.js**, supporting both credentials-based login and social login with **Google**.
+- **Real-time Data**: Transactions are stored in **Firebase Firestore** with real-time subscriptions, ensuring that your data is always up-to-date across all sessions.
+- **Multi-Currency Support**: Add transactions in 6 different currencies. All financial data is aggregated and displayed in a base currency (INR).
+- **Transaction Management**: Users can easily add, edit, and categorize their transactions.
+- **Budgeting**: Create and manage budgets. Pin your most important budget to the dashboard for quick access.
+- **Data Visualization**: Interactive charts and UI components from **shadcn/ui** to visualize your financial data.
+- **Customizable Theme**: Switch between light and dark themes with **next-themes**.
+- **Responsive Design**: The application is fully responsive and works seamlessly on all devices.
+- **TypeScript**: The entire project is built with **TypeScript**, ensuring type safety and improved developer experience.
 
 ---
 
 ## 🛠️ Tech Stack
 
-* **Framework**: [Next.js](https://nextjs.org/)
-* **Language**: [TypeScript](https://www.typescriptlang.org/)
-* **Authentication**: [Auth.js](https://authjs.dev/)
-* **Database**:
-    * [MongoDB](https://www.mongodb.com/) for user data.
-    * [Firebase Firestore](https://firebase.google.com/docs/firestore) for transaction data.
-* **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-* **UI Components**: [shadcn/ui](https://ui.shadcn.com/)
-* **Theming**: [next-themes](https://github.com/pacocoursey/next-themes)
+- **Framework**: [Next.js](https://nextjs.org/)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Authentication**: [Auth.js](https://authjs.dev/)
+- **Database**:
+  - [MongoDB](https://www.mongodb.com/) for user data.
+  - [Firebase Firestore](https://firebase.google.com/docs/firestore) for transaction data.
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **UI Components**: [shadcn/ui](https://ui.shadcn.com/)
+- **Theming**: [next-themes](https://github.com/pacocoursey/next-themes)
 
 ---
 
@@ -80,6 +80,7 @@ Make sure you have Node.js and npm (or yarn/pnpm) installed on your machine.
     ```
 
 5.  **Run the development server**
+
     ```sh
     npm run dev
     ```

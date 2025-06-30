@@ -1,11 +1,11 @@
-import NextAuth from "next-auth"
-import {PrismaAdapter} from "@auth/prisma-adapter"
-import {prisma} from "./prisma/prisma"
-import authConfig from "./auth.config"
- 
+import NextAuth from "next-auth";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import { prisma } from "./prisma/prisma";
+import authConfig from "./auth.config";
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
-  session: {strategy: 'jwt'},
+  session: { strategy: "jwt" },
   ...authConfig,
   callbacks: {
     async session({ session, token }) {
@@ -22,7 +22,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (token?.name) {
         session.user.name = token.name as string;
       }
-      if (token?.picture) { // Assuming 'picture' is used for image URL in JWT
+      if (token?.picture) {
+        // Assuming 'picture' is used for image URL in JWT
         session.user.image = token.picture as string;
       }
       return session;
@@ -41,6 +42,4 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return token;
     },
   },
-})
-
-  
+});

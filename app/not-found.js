@@ -1,27 +1,37 @@
 "use client"; // This component uses client-side interactivity
-import { redirect } from 'next/navigation';
-import { Frown } from 'lucide-react'; // Icon for the not-found page
+import { redirect } from "next/navigation";
+import { Frown } from "lucide-react"; // Icon for the not-found page
 
-const Button = ({ children, onClick, className = '', type = 'button', variant = 'default', size = 'md' }) => {
-  let baseStyles = "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none";
+const Button = ({
+  children,
+  onClick,
+  className = "",
+  type = "button",
+  variant = "default",
+  size = "md",
+}) => {
+  let baseStyles =
+    "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none";
   let variantStyles = "";
   let sizeStyles = "";
 
   switch (variant) {
-    case 'ghost':
-      variantStyles = "bg-transparent text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700";
+    case "ghost":
+      variantStyles =
+        "bg-transparent text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700";
       break;
-    case 'default':
+    case "default":
     default:
-      variantStyles = "bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-800";
+      variantStyles =
+        "bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-800";
       break;
   }
 
   switch (size) {
-    case 'icon':
+    case "icon":
       sizeStyles = "h-10 w-10 p-0";
       break;
-    case 'md':
+    case "md":
     default:
       sizeStyles = "h-10 px-4 py-2";
       break;
@@ -39,16 +49,18 @@ const Button = ({ children, onClick, className = '', type = 'button', variant = 
 };
 
 const NotFound = () => {
-  const handleGoHome = () => { 
-    redirect('/');
+  const handleGoHome = () => {
+    redirect("/");
   };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white p-4 text-center">
-      <Frown size={80} className="text-indigo-500 mb-6 animate-bounce" /> {/* Icon with a subtle bounce animation */}
+      <Frown size={80} className="text-indigo-500 mb-6 animate-bounce" />{" "}
+      {/* Icon with a subtle bounce animation */}
       <h1 className="text-5xl md:text-7xl font-extrabold mb-4">404</h1>
       <p className="text-xl md:text-2xl mb-8 max-w-md">
-        Oops! The page you{"'"}re looking for doesn{"'"}t exist. It might have been moved or deleted.
+        Oops! The page you{"'"}re looking for doesn{"'"}t exist. It might have
+        been moved or deleted.
       </p>
       <Button
         onClick={handleGoHome}
@@ -56,11 +68,11 @@ const NotFound = () => {
       >
         Go Back Home
       </Button>
-
       {/* Tailwind CSS setup for animation */}
       <style jsx>{`
         @keyframes bounce {
-          0%, 100% {
+          0%,
+          100% {
             transform: translateY(-25%);
             animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
           }

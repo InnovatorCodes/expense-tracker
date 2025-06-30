@@ -1,15 +1,15 @@
 // components/BudgetModal.tsx
 "use client";
 
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Loader2, Wallet } from 'lucide-react'; // Icons for loading, add, close
-import { categoryIcons,budgetCategories } from '@/utils/categories';
-import { budgetFormSchema } from '@/schemas/budget-schema';
-import { createBudget } from '@/actions/budget';
-import { currencySymbols } from '@/utils/currencies';
+import { Loader2, Wallet } from "lucide-react"; // Icons for loading, add, close
+import { categoryIcons, budgetCategories } from "@/utils/categories";
+import { budgetFormSchema } from "@/schemas/budget-schema";
+import { createBudget } from "@/actions/budget";
+import { currencySymbols } from "@/utils/currencies";
 
 // Shadcn/ui components
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -37,25 +37,28 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { toast } from 'sonner'; // Assuming you use Sonner for toasts
+import { toast } from "sonner"; // Assuming you use Sonner for toasts
 
 type CreateBudgetFormInput = z.infer<typeof budgetFormSchema>;
-
 
 interface BudgetModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  currency: string
+  currency: string;
 }
-const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess, currency }) => {
-  const[loading,setLoading]=useState(false);
+const BudgetModal: React.FC<BudgetModalProps> = ({
+  isOpen,
+  onClose,
+  onSuccess,
+  currency,
+}) => {
+  const [loading, setLoading] = useState(false);
 
-  const getCurrencySymbol = (currencyCode:string) => {
+  const getCurrencySymbol = (currencyCode: string) => {
     if (currencySymbols[currencyCode as keyof typeof currencySymbols]) {
       return currencySymbols[currencyCode as keyof typeof currencySymbols];
-    }
-    else return currencyCode
+    } else return currencyCode;
   };
 
   const form = useForm<CreateBudgetFormInput>({
@@ -67,49 +70,60 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess, c
   });
 
   const onSubmit = async (data: z.infer<typeof budgetFormSchema>) => {
-      setLoading(true);
-      form.clearErrors(); // Clear client-side errors
-  
-      try {
-        const result = await createBudget(data);
-  
-        if (result.error) {
-          setLoading(false);
-          toast.error(result.error);
-        } else if (result.success) {
-          setLoading(false);
-          toast.success(result.success);
-          form.reset({ // Reset form to default values on success
-            category: "",
-            amount: 0,
-          });
-          onSuccess(); // Call success callback to close modal
-        }
-      } catch (e) {
-        console.error("Failed to submit form:", e);
-        toast.error("An unexpected error occurred.");
+    setLoading(true);
+    form.clearErrors(); // Clear client-side errors
+
+    try {
+      const result = await createBudget(data);
+
+      if (result.error) {
+        setLoading(false);
+        toast.error(result.error);
+      } else if (result.success) {
+        setLoading(false);
+        toast.success(result.success);
+        form.reset({
+          // Reset form to default values on success
+          category: "",
+          amount: 0,
+        });
+        onSuccess(); // Call success callback to close modal
       }
-    };
+    } catch (e) {
+      console.error("Failed to submit form:", e);
+      toast.error("An unexpected error occurred.");
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px] dark:bg-gray-800 dark:text-white">
         <DialogHeader>
-          <DialogTitle className="dark:text-white">Create New Budget</DialogTitle>
+          <DialogTitle className="dark:text-white">
+            Create New Budget
+          </DialogTitle>
           <DialogDescription className="dark:text-gray-300">
             Define a new spending budget for a category.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col items-start gap-4 pt-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col items-start gap-4 pt-4"
+          >
             {/* Category Field */}
             <FormField
               control={form.control}
               name="category"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-right dark:text-gray-300">Category</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || ""}>
+                  <FormLabel className="text-right dark:text-gray-300">
+                    Category
+                  </FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value || ""}
+                  >
                     <FormControl>
                       <SelectTrigger className="dark:bg-gray-700 dark:text-white dark:border-gray-600">
                         <SelectValue placeholder="Select category" />
@@ -140,37 +154,43 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, onSuccess, c
               name="amount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-right dark:text-gray-300">Amount</FormLabel>
+                  <FormLabel className="text-right dark:text-gray-300">
+                    Amount
+                  </FormLabel>
                   <FormControl>
-                    <div className='relative flex items-center'>
-                        <span className="absolute left-3 text-gray-500 dark:text-gray-400">
-                            {getCurrencySymbol(currency)}
-                        </span>
-                        <Input
+                    <div className="relative flex items-center">
+                      <span className="absolute left-3 text-gray-500 dark:text-gray-400">
+                        {getCurrencySymbol(currency)}
+                      </span>
+                      <Input
                         type="number"
                         step="0.01"
                         min="0.01"
                         placeholder="e.g., 500.00"
                         {...field}
-                        onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
+                        onChange={(e) =>
+                          field.onChange(parseFloat(e.target.value) || 0)
+                        }
                         className="pl-8 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
-                        />
+                      />
                     </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <DialogFooter className='self-stretch'>
-              <Button type="submit" disabled={loading} className="w-full dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white">
+            <DialogFooter className="self-stretch">
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white"
+              >
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...
                   </>
                 ) : (
-                  <>
-                    Create Budget
-                  </>
+                  <>Create Budget</>
                 )}
               </Button>
             </DialogFooter>

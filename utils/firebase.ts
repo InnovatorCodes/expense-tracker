@@ -28,18 +28,19 @@ import { Budget } from "@/types/budget";
 declare const __app_id: string | undefined;
 declare const __firebase_config: string | undefined;
 
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-const firebaseConfig = typeof __firebase_config !== 'undefined'
-  ? JSON.parse(__firebase_config)
-  : {
-      apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID, // This must be your correct project ID
-      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-      messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-      appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-      measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
-    };
+const appId = typeof __app_id !== "undefined" ? __app_id : "default-app-id";
+const firebaseConfig =
+  typeof __firebase_config !== "undefined"
+    ? JSON.parse(__firebase_config)
+    : {
+        apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+        authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID, // This must be your correct project ID
+        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+        appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+        measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
+      };
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
@@ -77,18 +78,20 @@ const getUserBudgetsCollectionRef = (userId: string) => {
   return collection(db, path);
 };
 
-export const getPinnedBudgetId= async (userId: string, callback:(budgetId: string)=>void)=>{
+export const getPinnedBudgetId = async (
+  userId: string,
+  callback: (budgetId: string) => void,
+) => {
   const userDocRef = getUserDocRef(userId);
-  await getDoc(userDocRef).then((userDocSnapshot)=>{
+  await getDoc(userDocRef).then((userDocSnapshot) => {
     let budgetId: string | undefined;
     if (userDocSnapshot.exists()) {
       const data = userDocSnapshot.data();
       budgetId = data?.pinnedBudget;
     }
-    if(budgetId) callback(budgetId)
+    if (budgetId) callback(budgetId);
   });
-}
-
+};
 
 /**
  * Fetches the default currency for a specific user.
@@ -96,7 +99,9 @@ export const getPinnedBudgetId= async (userId: string, callback:(budgetId: strin
  * @param userId The ID of the currently authenticated user.
  * @returns The default currency string (e.g., "USD", "INR") or undefined if not set.
  */
-export const getUserDefaultCurrency = async (userId: string): Promise<string | undefined> => {
+export const getUserDefaultCurrency = async (
+  userId: string,
+): Promise<string | undefined> => {
   try {
     const userDocRef = getUserDocRef(userId);
     const docSnap = await getDoc(userDocRef);
@@ -107,7 +112,10 @@ export const getUserDefaultCurrency = async (userId: string): Promise<string | u
       return "INR"; // Default to INR if no currency is set
     }
   } catch (error) {
-    console.error(`Firestore: Error fetching default currency for user ${userId}:`, error);
+    console.error(
+      `Firestore: Error fetching default currency for user ${userId}:`,
+      error,
+    );
     return undefined;
   }
 };
@@ -119,14 +127,20 @@ export const getUserDefaultCurrency = async (userId: string): Promise<string | u
  * @param userId The ID of the currently authenticated user.
  * @param currency The currency to set as default (e.g., "USD", "INR").
  */
-export const setUserDefaultCurrency = async (userId: string, currency: string) => {
+export const setUserDefaultCurrency = async (
+  userId: string,
+  currency: string,
+) => {
   try {
     const userDocRef = getUserDocRef(userId);
     // Use setDoc with merge: true to update only the defaultCurrency field
     // without overwriting other fields if the document already exists.
     await setDoc(userDocRef, { defaultCurrency: currency }, { merge: true });
   } catch (error) {
-    console.error(`Firestore: Error setting default currency for user ${userId}:`, error);
+    console.error(
+      `Firestore: Error setting default currency for user ${userId}:`,
+      error,
+    );
     throw error; // Re-throw to handle in calling function
   }
 };
@@ -144,7 +158,7 @@ export const subscribeToTransactions = (
   userId: string,
   startDate: Date,
   endDate: Date,
-  callback: (transactions: Transaction[]) => void
+  callback: (transactions: Transaction[]) => void,
 ) => {
   // If userId is missing, log an error and don't proceed with subscription
   if (!userId) {
@@ -156,32 +170,43 @@ export const subscribeToTransactions = (
   const transactionsCollectionRef = getUserTransactionsCollectionRef(userId);
   const q = query(
     transactionsCollectionRef,
-    where('date', '>=', startDate.toISOString()), 
-    where('date', '<=', endDate.toISOString()), 
-    orderBy("date", "desc"), orderBy("createdAt", "desc"));
+    where("date", ">=", startDate.toISOString()),
+    where("date", "<=", endDate.toISOString()),
+    orderBy("date", "desc"),
+    orderBy("createdAt", "desc"),
+  );
 
-  const unsubscribe = onSnapshot(q, (snapshot) => {
-    const fetchedTransactions: Transaction[] = snapshot.docs.map(doc => {
-      const data = doc.data();
-      const transaction: Transaction= {
-        id: doc.id,
-        name: data.name,
-        amount: parseFloat(data.amount) || 0, // Ensure amount is parsed as number
-        currency:data.currency,
-        category: data.category,
-        date: data.date,
-        type: data.type, // 'expense' or 'income'
-        notes: data.notes || undefined,
-        createdAt: data.createdAt?.toDate() || new Date(), // Convert Firestore Timestamp to Date
-      };  
-      return transaction;
-    });
+  const unsubscribe = onSnapshot(
+    q,
+    (snapshot) => {
+      const fetchedTransactions: Transaction[] = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        const transaction: Transaction = {
+          id: doc.id,
+          name: data.name,
+          amount: parseFloat(data.amount) || 0, // Ensure amount is parsed as number
+          currency: data.currency,
+          category: data.category,
+          date: data.date,
+          type: data.type, // 'expense' or 'income'
+          notes: data.notes || undefined,
+          createdAt: data.createdAt?.toDate() || new Date(), // Convert Firestore Timestamp to Date
+        };
+        return transaction;
+      });
 
-    callback(fetchedTransactions);
-  }, (error) => {
-    // This is the error handler for the onSnapshot listener itself
-    console.error("Firestore: onSnapshot listener error:", error.name, error.message, error.code);
-  });
+      callback(fetchedTransactions);
+    },
+    (error) => {
+      // This is the error handler for the onSnapshot listener itself
+      console.error(
+        "Firestore: onSnapshot listener error:",
+        error.name,
+        error.message,
+        error.code,
+      );
+    },
+  );
 
   return unsubscribe;
 };
@@ -197,7 +222,7 @@ export const subscribeToTransactions = (
  */
 export const subscribeToBalance = (
   userId: string,
-  callback: (balance: number) => void
+  callback: (balance: number) => void,
 ) => {
   if (!userId) {
     console.error("userId is undefined or null.");
@@ -207,17 +232,26 @@ export const subscribeToBalance = (
 
   const userDocRef = getUserDocRef(userId);
 
-  const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
-    if (docSnap.exists()) {
-      // Safely cast and default to 0 if 'currentBalance' field is missing or not a number
-      const balance = (docSnap.data()?.currentBalance as number) || 0;
-      callback(balance);
-    } else {
-      callback(0); // Default balance if user doc doesn't exist
-    }
-  }, (error) => {
-    console.error("Firestore: Error subscribing to balance:", error.name, error.message, error.code);
-  });
+  const unsubscribe = onSnapshot(
+    userDocRef,
+    (docSnap) => {
+      if (docSnap.exists()) {
+        // Safely cast and default to 0 if 'currentBalance' field is missing or not a number
+        const balance = (docSnap.data()?.currentBalance as number) || 0;
+        callback(balance);
+      } else {
+        callback(0); // Default balance if user doc doesn't exist
+      }
+    },
+    (error) => {
+      console.error(
+        "Firestore: Error subscribing to balance:",
+        error.name,
+        error.message,
+        error.code,
+      );
+    },
+  );
 
   return unsubscribe;
 };
@@ -227,7 +261,7 @@ export const subscribeToMonthlyTotals = (
   year: number,
   month: number, // 1-indexed month
   callback: (monthlyIncome: number, monthlyExpenses: number) => void,
-  exchangeRates:Record<string, number>
+  exchangeRates: Record<string, number>,
 ) => {
   if (!userId) {
     console.error("userId is undefined or null");
@@ -238,36 +272,45 @@ export const subscribeToMonthlyTotals = (
   const transactionsCollectionRef = getUserTransactionsCollectionRef(userId);
 
   // Calculate the start and end dates for the current month in "YYYY-MM-DD" format
-  const startOfMonth = `${year}-${String(month).padStart(2, '0')}-01`;
+  const startOfMonth = `${year}-${String(month).padStart(2, "0")}-01`;
   const endOfMonthDate = new Date(year, month, 0); // Day 0 of next month is last day of current month
-  const endOfMonth = `${year}-${String(month).padStart(2, '0')}-${String(endOfMonthDate.getDate()).padStart(2, '0')}`;
+  const endOfMonth = `${year}-${String(month).padStart(2, "0")}-${String(endOfMonthDate.getDate()).padStart(2, "0")}`;
 
   const q = query(
     transactionsCollectionRef,
     where("date", ">=", startOfMonth),
     where("date", "<=", endOfMonth),
     orderBy("date", "asc"), // Order by date for consistency
-    orderBy("createdAt", "asc") // Then by creation time for tie-breaking
+    orderBy("createdAt", "asc"), // Then by creation time for tie-breaking
   );
 
-  const unsubscribe = onSnapshot(q, (snapshot) => {
-    let totalIncome = 0;
-    let totalExpenses = 0;
+  const unsubscribe = onSnapshot(
+    q,
+    (snapshot) => {
+      let totalIncome = 0;
+      let totalExpenses = 0;
 
-    snapshot.docs.forEach(doc => {
-      const data = doc.data();
-      const amount = parseFloat(data.amount) || 0;
-      if (data.type === 'income') {
-        totalIncome += amount*1/(exchangeRates[data.currency]);
-      } else if (data.type === 'expense') {
-        totalExpenses += amount*1/(exchangeRates[data.currency]);
-      }
-    });
+      snapshot.docs.forEach((doc) => {
+        const data = doc.data();
+        const amount = parseFloat(data.amount) || 0;
+        if (data.type === "income") {
+          totalIncome += (amount * 1) / exchangeRates[data.currency];
+        } else if (data.type === "expense") {
+          totalExpenses += (amount * 1) / exchangeRates[data.currency];
+        }
+      });
 
-    callback(totalIncome, totalExpenses);
-  }, (error) => {
-    console.error("Firestore: Error subscribing to monthly totals:", error.name, error.message, error.code);
-  });
+      callback(totalIncome, totalExpenses);
+    },
+    (error) => {
+      console.error(
+        "Firestore: Error subscribing to monthly totals:",
+        error.name,
+        error.message,
+        error.code,
+      );
+    },
+  );
 
   return unsubscribe;
 };
@@ -284,9 +327,8 @@ export const subscribeToMonthlyTotals = (
 export const subscribeToRecentTransactions = (
   userId: string,
   callback: (transactions: Transaction[]) => void,
-  limitCount: number = 4 // Default to 5 recent transactions
+  limitCount: number = 4, // Default to 5 recent transactions
 ) => {
-
   if (!userId) {
     console.error("userId is undefined or null");
     callback([]);
@@ -298,34 +340,42 @@ export const subscribeToRecentTransactions = (
     transactionsCollectionRef,
     orderBy("date", "desc"), // Order by date descending
     orderBy("createdAt", "desc"), // Secondary sort for stable order
-    limit(limitCount) // Limit to the most recent transactions
+    limit(limitCount), // Limit to the most recent transactions
   );
 
-  const unsubscribe = onSnapshot(q, (snapshot) => {
-    const fetchedTransactions: Transaction[] = snapshot.docs.map(doc => {
-      const data = doc.data();
-      const transaction: Transaction = {
-        id: doc.id,
-        name: data.name,
-        amount: parseFloat(data.amount) || 0,
-        currency: data.currency,
-        category: data.category,
-        date: data.date,
-        type: data.type,
-        notes: data.notes || undefined,
-        createdAt: data.createdAt?.toDate() || new Date(),
-      };
-      return transaction;
-    });
+  const unsubscribe = onSnapshot(
+    q,
+    (snapshot) => {
+      const fetchedTransactions: Transaction[] = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        const transaction: Transaction = {
+          id: doc.id,
+          name: data.name,
+          amount: parseFloat(data.amount) || 0,
+          currency: data.currency,
+          category: data.category,
+          date: data.date,
+          type: data.type,
+          notes: data.notes || undefined,
+          createdAt: data.createdAt?.toDate() || new Date(),
+        };
+        return transaction;
+      });
 
-    callback(fetchedTransactions);
-  }, (error) => {
-    console.error("Firestore: onSnapshot listener error for recent transactions:", error.name, error.message, error.code);
-  });
+      callback(fetchedTransactions);
+    },
+    (error) => {
+      console.error(
+        "Firestore: onSnapshot listener error for recent transactions:",
+        error.name,
+        error.message,
+        error.code,
+      );
+    },
+  );
 
   return unsubscribe;
 };
-
 
 /**
  * Retrieves the top N transactions for a specific user within the current year,
@@ -338,7 +388,7 @@ export const subscribeToRecentTransactions = (
  */
 export const getTopTransactionsByAmountForCurrentYear = async (
   userId: string,
-  limitCount: number = 3 // Default to 3 if not specified
+  limitCount: number = 3, // Default to 3 if not specified
 ): Promise<Transaction[]> => {
   if (!userId) {
     console.error("userId is undefined or null");
@@ -359,12 +409,12 @@ export const getTopTransactionsByAmountForCurrentYear = async (
       where("date", "<=", endOfYear),
       orderBy("amount", "desc"), // Order by amount descending
       orderBy("createdAt", "desc"), // Use createdAt as a tie-breaker for consistent results
-      limit(limitCount) // Limit to the specified number of transactions
+      limit(limitCount), // Limit to the specified number of transactions
     );
 
     const querySnapshot = await getDocs(q);
 
-    const topTransactions: Transaction[] = querySnapshot.docs.map(doc => {
+    const topTransactions: Transaction[] = querySnapshot.docs.map((doc) => {
       const data = doc.data();
       const transaction: Transaction = {
         id: doc.id,
@@ -375,13 +425,16 @@ export const getTopTransactionsByAmountForCurrentYear = async (
         date: data.date,
         type: data.type,
         notes: data.notes || undefined,
-        createdAt: data.createdAt?.toDate() || new Date()
+        createdAt: data.createdAt?.toDate() || new Date(),
       };
       return transaction;
     });
     return topTransactions;
   } catch (error) {
-    console.error("Firestore: Error fetching top transactions by amount:", error);
+    console.error(
+      "Firestore: Error fetching top transactions by amount:",
+      error,
+    );
     // IMPORTANT: If you get an "The query requires an index" error here,
     // look for a link in your console and click it to create the composite index
     // for (amount descending, createdAt descending) and (date range where clauses).
@@ -404,7 +457,7 @@ export const subscribeToMonthlyCategorizedExpenses = (
   year: number,
   month: number, // 1-indexed month
   callback: (categorizedExpenses: { [key: string]: number }) => void,
-  exchangeRates: Record<string,number>,
+  exchangeRates: Record<string, number>,
 ) => {
   if (!userId) {
     console.error("userId is undefined or null");
@@ -414,36 +467,47 @@ export const subscribeToMonthlyCategorizedExpenses = (
 
   const transactionsCollectionRef = getUserTransactionsCollectionRef(userId);
 
-  const startOfMonth = `${year}-${String(month).padStart(2, '0')}-01`;
+  const startOfMonth = `${year}-${String(month).padStart(2, "0")}-01`;
   const endOfMonthDate = new Date(year, month, 0); // Day 0 of next month is last day of current month
-  const endOfMonth = `${year}-${String(month).padStart(2, '0')}-${String(endOfMonthDate.getDate()).padStart(2, '0')}`;
+  const endOfMonth = `${year}-${String(month).padStart(2, "0")}-${String(endOfMonthDate.getDate()).padStart(2, "0")}`;
 
   const q = query(
     transactionsCollectionRef,
     where("type", "==", "expense"),
     where("date", ">=", startOfMonth),
     where("date", "<=", endOfMonth),
-    orderBy("date", "asc") // Order by date for consistent snapshot results
+    orderBy("date", "asc"), // Order by date for consistent snapshot results
   );
 
-  const unsubscribe = onSnapshot(q, (snapshot) => {
-    const categorizedExpenses: { [key: string]: number } = {};
+  const unsubscribe = onSnapshot(
+    q,
+    (snapshot) => {
+      const categorizedExpenses: { [key: string]: number } = {};
 
-    snapshot.docs.forEach(doc => {
-      const data = doc.data();
-      const category = data.category || 'Other';
-      const amount = parseFloat(data.amount) || 0;
-      if (categorizedExpenses[category]) {
-        categorizedExpenses[category] += amount*1/(exchangeRates[data.currency]);
-      } else {
-        categorizedExpenses[category] = amount*1/(exchangeRates[data.currency]);
-      }
-    });
+      snapshot.docs.forEach((doc) => {
+        const data = doc.data();
+        const category = data.category || "Other";
+        const amount = parseFloat(data.amount) || 0;
+        if (categorizedExpenses[category]) {
+          categorizedExpenses[category] +=
+            (amount * 1) / exchangeRates[data.currency];
+        } else {
+          categorizedExpenses[category] =
+            (amount * 1) / exchangeRates[data.currency];
+        }
+      });
 
-    callback(categorizedExpenses);
-  }, (error) => {
-    console.error("Firestore: Error subscribing to monthly categorized expenses:", error.name, error.message, error.code);
-  });
+      callback(categorizedExpenses);
+    },
+    (error) => {
+      console.error(
+        "Firestore: Error subscribing to monthly categorized expenses:",
+        error.name,
+        error.message,
+        error.code,
+      );
+    },
+  );
 
   return unsubscribe;
 };
@@ -452,7 +516,7 @@ export const subscribeToPastWeekTransactions = (
   userId: string,
   daysAgo: number = 7,
   callback: (data: DailyFinancialData[]) => void,
-  exchangeRates: Record<string,number>
+  exchangeRates: Record<string, number>,
 ) => {
   if (!userId) {
     console.error("userId is undefined or null");
@@ -468,57 +532,70 @@ export const subscribeToPastWeekTransactions = (
   const startDate = new Date(today);
   startDate.setDate(today.getDate() - (daysAgo - 1)); // Go back N-1 days to include today
 
-  const startDateString = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
-  const endDateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  const startDateString = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, "0")}-${String(startDate.getDate()).padStart(2, "0")}`;
+  const endDateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
   const q = query(
     transactionsCollectionRef,
     where("date", ">=", startDateString),
     where("date", "<=", endDateString),
-    orderBy("date", "asc")
+    orderBy("date", "asc"),
   );
 
-  const unsubscribe = onSnapshot(q, (snapshot) => {
-    
-    // Initialize data structure for the last N days
-    const dailyDataMap: { [key: string]: { income: number; expense: number } } = {};
-    for (let i = 0; i < daysAgo; i++) {
-      const d = new Date(startDate);
-      d.setDate(startDate.getDate() + i);
-      const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      dailyDataMap[dateKey] = { income: 0, expense: 0 };
-    }
-
-    // Aggregate data from the snapshot
-    snapshot.docs.forEach(doc => {
-      const data = doc.data();
-      const date = data.date;
-      const amount = parseFloat(data.amount) || 0;
-      const type = data.type;
-
-      if (dailyDataMap[date]) { // Ensure date exists in our range
-        if (type === 'income') {
-          dailyDataMap[date].income += amount*1/(exchangeRates[data.currency]);
-        } else if (type === 'expense') {
-          dailyDataMap[date].expense += amount*1/(exchangeRates[data.currency]);
-        }
+  const unsubscribe = onSnapshot(
+    q,
+    (snapshot) => {
+      // Initialize data structure for the last N days
+      const dailyDataMap: {
+        [key: string]: { income: number; expense: number };
+      } = {};
+      for (let i = 0; i < daysAgo; i++) {
+        const d = new Date(startDate);
+        d.setDate(startDate.getDate() + i);
+        const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        dailyDataMap[dateKey] = { income: 0, expense: 0 };
       }
-    });
 
-    // Convert map to sorted array
-    const result: DailyFinancialData[] = Object.keys(dailyDataMap)
-      .sort() // Sort keys (dates) to ensure chronological order
-      .map(dateKey => ({
-        date: dateKey.slice(5), // MM-DD for chart X-axis
-        fullDate: dateKey,      // YYYY-MM-DD for Date object construction
-        income: dailyDataMap[dateKey].income,
-        expense: dailyDataMap[dateKey].expense,
-      }));
+      // Aggregate data from the snapshot
+      snapshot.docs.forEach((doc) => {
+        const data = doc.data();
+        const date = data.date;
+        const amount = parseFloat(data.amount) || 0;
+        const type = data.type;
 
-    callback(result);
-  }, (error) => {
-    console.error("Firestore: Error subscribing to daily income/expenses:", error.name, error.message, error.code);
-  });
+        if (dailyDataMap[date]) {
+          // Ensure date exists in our range
+          if (type === "income") {
+            dailyDataMap[date].income +=
+              (amount * 1) / exchangeRates[data.currency];
+          } else if (type === "expense") {
+            dailyDataMap[date].expense +=
+              (amount * 1) / exchangeRates[data.currency];
+          }
+        }
+      });
+
+      // Convert map to sorted array
+      const result: DailyFinancialData[] = Object.keys(dailyDataMap)
+        .sort() // Sort keys (dates) to ensure chronological order
+        .map((dateKey) => ({
+          date: dateKey.slice(5), // MM-DD for chart X-axis
+          fullDate: dateKey, // YYYY-MM-DD for Date object construction
+          income: dailyDataMap[dateKey].income,
+          expense: dailyDataMap[dateKey].expense,
+        }));
+
+      callback(result);
+    },
+    (error) => {
+      console.error(
+        "Firestore: Error subscribing to daily income/expenses:",
+        error.name,
+        error.message,
+        error.code,
+      );
+    },
+  );
 
   return unsubscribe;
 };
@@ -526,7 +603,7 @@ export const subscribeToPastWeekTransactions = (
 export const subscribeToTopTransactions = (
   userId: string,
   callback: (transactions: Transaction[]) => void,
-  limitCount: number = 3 // Default to 3 if not specified
+  limitCount: number = 3, // Default to 3 if not specified
 ) => {
   if (!userId) {
     callback([]);
@@ -545,30 +622,39 @@ export const subscribeToTopTransactions = (
     where("date", "<=", endOfYear),
     orderBy("amount", "desc"), // Order by amount descending
     orderBy("createdAt", "desc"), // Secondary sort for stable order
-    limit(limitCount) // Limit to the specified number of transactions
+    limit(limitCount), // Limit to the specified number of transactions
   );
 
-  const unsubscribe = onSnapshot(q, (snapshot) => {
-    const fetchedTransactions: Transaction[] = snapshot.docs.map(doc => {
-      const data = doc.data();
-      const transaction: Transaction = {
-        id: doc.id,
-        name: data.name,
-        amount: parseFloat(data.amount) || 0,
-        currency: data.currency,
-        category: data.category,
-        date: data.date,
-        type: data.type,
-        notes: data.notes || undefined,
-        createdAt: data.createdAt?.toDate() || new Date(),
-      };
-      return transaction;
-    });
+  const unsubscribe = onSnapshot(
+    q,
+    (snapshot) => {
+      const fetchedTransactions: Transaction[] = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        const transaction: Transaction = {
+          id: doc.id,
+          name: data.name,
+          amount: parseFloat(data.amount) || 0,
+          currency: data.currency,
+          category: data.category,
+          date: data.date,
+          type: data.type,
+          notes: data.notes || undefined,
+          createdAt: data.createdAt?.toDate() || new Date(),
+        };
+        return transaction;
+      });
 
-    callback(fetchedTransactions);
-  }, (error) => {
-    console.error("Firestore: onSnapshot listener error for top transactions:", error.name, error.message, error.code);
-  });
+      callback(fetchedTransactions);
+    },
+    (error) => {
+      console.error(
+        "Firestore: onSnapshot listener error for top transactions:",
+        error.name,
+        error.message,
+        error.code,
+      );
+    },
+  );
 
   return unsubscribe;
 };
@@ -588,8 +674,8 @@ export interface DailyFinancialData {
  */
 export const addTransaction = async (
   userId: string,
-  transactionData: Omit<Transaction, 'id' | 'createdAt' | 'userId'>,
-  exchangeRates: Record<string,number>
+  transactionData: Omit<Transaction, "id" | "createdAt" | "userId">,
+  exchangeRates: Record<string, number>,
 ) => {
   try {
     const transactionsCollectionRef = getUserTransactionsCollectionRef(userId);
@@ -602,7 +688,11 @@ export const addTransaction = async (
     });
 
     // 2. Atomically update the user's current balance
-    const amountChange = transactionData.type === 'income' ? transactionData.amount*1/(exchangeRates[transactionData.currency]) : -transactionData.amount*1/(exchangeRates[transactionData.currency]);
+    const amountChange =
+      transactionData.type === "income"
+        ? (transactionData.amount * 1) / exchangeRates[transactionData.currency]
+        : (-transactionData.amount * 1) /
+          exchangeRates[transactionData.currency];
 
     // Check if the user document exists to ensure we don't try to update a non-existent document
     // If it doesn't exist, create it with the initial balance.
@@ -611,7 +701,7 @@ export const addTransaction = async (
       await setDoc(userDocRef, {
         currentBalance: amountChange, // Set initial balance
       });
-      setUserDefaultCurrency(userId,'INR')
+      setUserDefaultCurrency(userId, "INR");
     } else {
       await updateDoc(userDocRef, {
         currentBalance: increment(amountChange),
@@ -635,26 +725,46 @@ export const addTransaction = async (
 export const updateTransaction = async (
   userId: string,
   transactionId: string,
-  updatedData: Partial<Omit<Transaction, 'id' | 'userId' | 'createdAt'>>,
+  updatedData: Partial<Omit<Transaction, "id" | "userId" | "createdAt">>,
   originalTransaction: Transaction, // Pass original transaction for balance adjustment
-  exchangeRates: Record<string,number>
+  exchangeRates: Record<string, number>,
 ) => {
   try {
-    const transactionDocRef = doc(getUserTransactionsCollectionRef(userId), transactionId);
+    const transactionDocRef = doc(
+      getUserTransactionsCollectionRef(userId),
+      transactionId,
+    );
     const userDocRef = getUserDocRef(userId);
 
     // Calculate balance adjustment
     let balanceChange = 0;
 
     // Determine the original value's impact
-    const originalAmountImpact = originalTransaction.type === 'income' ? originalTransaction.amount*1/(exchangeRates[originalTransaction.currency]) : -originalTransaction.amount*(1/exchangeRates[originalTransaction.currency]);
+    const originalAmountImpact =
+      originalTransaction.type === "income"
+        ? (originalTransaction.amount * 1) /
+          exchangeRates[originalTransaction.currency]
+        : -originalTransaction.amount *
+          (1 / exchangeRates[originalTransaction.currency]);
 
-    const newAmount = typeof updatedData.amount === 'string' ? parseFloat(updatedData.amount) : updatedData.amount;
-    const currency = updatedData.currency ? updatedData.currency: originalTransaction.currency;
-    const finalNewAmount = newAmount !== undefined ? newAmount * 1 / (exchangeRates[currency]) : originalTransaction.amount * 1 / (exchangeRates[currency]);
+    const newAmount =
+      typeof updatedData.amount === "string"
+        ? parseFloat(updatedData.amount)
+        : updatedData.amount;
+    const currency = updatedData.currency
+      ? updatedData.currency
+      : originalTransaction.currency;
+    const finalNewAmount =
+      newAmount !== undefined
+        ? (newAmount * 1) / exchangeRates[currency]
+        : (originalTransaction.amount * 1) / exchangeRates[currency];
 
-    const newType = updatedData.type !== undefined ? updatedData.type : originalTransaction.type;
-    const newAmountImpact = newType === 'income' ? finalNewAmount : -finalNewAmount;
+    const newType =
+      updatedData.type !== undefined
+        ? updatedData.type
+        : originalTransaction.type;
+    const newAmountImpact =
+      newType === "income" ? finalNewAmount : -finalNewAmount;
 
     // The change in balance is (new impact) - (original impact)
     balanceChange = newAmountImpact - originalAmountImpact;
@@ -680,16 +790,28 @@ export const updateTransaction = async (
  * @param userId The ID of the currently authenticated user.
  * @param transactionId The ID of the transaction document to delete.
  */
-export const deleteTransaction = async (userId: string, transactionId: string, exchangeRates: Record<string,number>) => {
+export const deleteTransaction = async (
+  userId: string,
+  transactionId: string,
+  exchangeRates: Record<string, number>,
+) => {
   try {
-    let amountChange =0;
-    const transactionDocRef = doc(getUserTransactionsCollectionRef(userId), transactionId);
+    let amountChange = 0;
+    const transactionDocRef = doc(
+      getUserTransactionsCollectionRef(userId),
+      transactionId,
+    );
     await getDoc(transactionDocRef).then((docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        amountChange = data.type === 'income' ? -data.amount*1/(exchangeRates[data.currency]) : data.amount*1/(exchangeRates[data.currency]); // Negate the amount for balance update
+        amountChange =
+          data.type === "income"
+            ? (-data.amount * 1) / exchangeRates[data.currency]
+            : (data.amount * 1) / exchangeRates[data.currency]; // Negate the amount for balance update
       } else {
-        console.warn(`Transaction document with ID ${transactionId} does not exist.`);
+        console.warn(
+          `Transaction document with ID ${transactionId} does not exist.`,
+        );
         return; // Exit if the document doesn't exist
       }
     });
@@ -700,7 +822,7 @@ export const deleteTransaction = async (userId: string, transactionId: string, e
       await setDoc(userDocRef, {
         currentBalance: amountChange, // Set initial balance
       });
-      setUserDefaultCurrency(userId,'INR')
+      setUserDefaultCurrency(userId, "INR");
     } else {
       await updateDoc(userDocRef, {
         currentBalance: increment(amountChange),
@@ -712,76 +834,85 @@ export const deleteTransaction = async (userId: string, transactionId: string, e
   }
 };
 
-
-interface BudgetData{
+interface BudgetData {
   category: string;
   amount: number;
 }
 
-export const subscribeToBudgets= async (
+export const subscribeToBudgets = async (
   userId: string,
   budgetCallback: (budgets: Budget[]) => void,
   exchangeRates: Record<string, number>,
-  transactionCallback: (transactions: { [key: string]: number })=>void,
-)=>{
+  transactionCallback: (transactions: { [key: string]: number }) => void,
+) => {
   if (!userId) {
     console.error("userId is undefined or null");
     budgetCallback([]); // Return empty array immediately
-    transactionCallback({})
+    transactionCallback({});
     return () => {}; // Return no-op unsubscribe
   }
 
-  const date=new Date();
+  const date = new Date();
   const transactionsCollectionRef = getUserTransactionsCollectionRef(userId);
-  const startOfMonth = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2, '0')}-01`;
-  const endOfMonthDate = new Date(date.getFullYear(), date.getMonth()+2, 0); // Day 0 of next month is last day of current month
-  const endOfMonth = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2, '0')}-${String(endOfMonthDate.getDate()).padStart(2, '0')}`;
+  const startOfMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-01`;
+  const endOfMonthDate = new Date(date.getFullYear(), date.getMonth() + 2, 0); // Day 0 of next month is last day of current month
+  const endOfMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(endOfMonthDate.getDate()).padStart(2, "0")}`;
   const q1 = query(
     transactionsCollectionRef,
     where("type", "==", "expense"),
     where("date", ">=", startOfMonth),
-    where("date", "<=", endOfMonth), 
+    where("date", "<=", endOfMonth),
   );
-  const categoryAmounts: { [key: string]: number } = {"All":0};
-  await getDocs(q1).then((querySnapshot)=>{
-    querySnapshot.docs.map(doc => {
+  const categoryAmounts: { [key: string]: number } = { All: 0 };
+  await getDocs(q1).then((querySnapshot) => {
+    querySnapshot.docs.map((doc) => {
       const data = doc.data();
-      if(!categoryAmounts[data.category]){
-        categoryAmounts[data.category]=0;
+      if (!categoryAmounts[data.category]) {
+        categoryAmounts[data.category] = 0;
       }
-      categoryAmounts[data.category]+=data.amount*=1/(exchangeRates[data.currency]);
-      categoryAmounts["All"]+=data.amount;
+      categoryAmounts[data.category] += data.amount *=
+        1 / exchangeRates[data.currency];
+      categoryAmounts["All"] += data.amount;
     });
     transactionCallback(categoryAmounts);
   });
 
-  const budgetsCollectionRef = collection(db, 'users', userId, 'budgets');
-  const q2 = query(budgetsCollectionRef, orderBy('createdAt'));
+  const budgetsCollectionRef = collection(db, "users", userId, "budgets");
+  const q2 = query(budgetsCollectionRef, orderBy("createdAt"));
 
-  const unsubscribe = onSnapshot(q2, (snapshot) => {
-    const fetchedBudgets: Budget[] = snapshot.docs.map(doc => {
-      const data = doc.data();
-      const budget: Budget = {
-        id: doc.id,
-        category: data.category,
-        amount: data.amount,
-        createdAt: data.createdAt?.toDate() || new Date(), // Convert Firestore Timestamp to Date
-      };
-      return budget;
-    });
-    
-    budgetCallback(fetchedBudgets);
-  }, (error) => {
-    // This is the error handler for the onSnapshot listener itself
-    console.error("Firestore: onSnapshot listener error:", error.name, error.message, error.code);
-  });
+  const unsubscribe = onSnapshot(
+    q2,
+    (snapshot) => {
+      const fetchedBudgets: Budget[] = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        const budget: Budget = {
+          id: doc.id,
+          category: data.category,
+          amount: data.amount,
+          createdAt: data.createdAt?.toDate() || new Date(), // Convert Firestore Timestamp to Date
+        };
+        return budget;
+      });
+
+      budgetCallback(fetchedBudgets);
+    },
+    (error) => {
+      // This is the error handler for the onSnapshot listener itself
+      console.error(
+        "Firestore: onSnapshot listener error:",
+        error.name,
+        error.message,
+        error.code,
+      );
+    },
+  );
   return unsubscribe;
-}
+};
 
-export const subscribeToBudgetDashboard= async (
+export const subscribeToBudgetDashboard = async (
   userId: string,
   callback: (budget: Budget | null) => void,
-)=>{
+) => {
   const userDocRef = getUserDocRef(userId);
   const userDocSnapshot = await getDoc(userDocRef);
   let budgetId: string | undefined;
@@ -796,30 +927,39 @@ export const subscribeToBudgetDashboard= async (
     return () => {};
   }
 
-  const budgetDocRef = doc(db, 'users', userId, 'budgets', budgetId);
+  const budgetDocRef = doc(db, "users", userId, "budgets", budgetId);
 
-  const unsubscribe = onSnapshot(budgetDocRef, (docSnapshot) => {
-    if (docSnapshot.exists()) {
-      const data = docSnapshot.data();
-      const budget: Budget = {
-        id: docSnapshot.id,
-        category: data.category,
-        amount: data.amount,
-        createdAt: data.createdAt?.toDate() || new Date(), // Convert Firestore Timestamp to Date
-      };
-      callback(budget);
-    } else {
-      // Document does not exist
+  const unsubscribe = onSnapshot(
+    budgetDocRef,
+    (docSnapshot) => {
+      if (docSnapshot.exists()) {
+        const data = docSnapshot.data();
+        const budget: Budget = {
+          id: docSnapshot.id,
+          category: data.category,
+          amount: data.amount,
+          createdAt: data.createdAt?.toDate() || new Date(), // Convert Firestore Timestamp to Date
+        };
+        callback(budget);
+      } else {
+        // Document does not exist
+        callback(null);
+      }
+    },
+    (error) => {
+      // Handle errors during snapshot listening
+      console.error(
+        `Firestore: onSnapshot listener error for budget '${budgetId}':`,
+        error.name,
+        error.message,
+        error.code,
+      );
       callback(null);
-    }
-  }, (error) => {
-    // Handle errors during snapshot listening
-    console.error(`Firestore: onSnapshot listener error for budget '${budgetId}':`, error.name, error.message, error.code);
-    callback(null);
-  });
+    },
+  );
 
   return unsubscribe;
-}
+};
 
 /**
  * Adds a new budget to Firestore.
@@ -829,41 +969,40 @@ export const subscribeToBudgetDashboard= async (
  */
 export const addBudget = async (userId: string, budgetData: BudgetData) => {
   try {
-    const { category,amount } = budgetData; // Destructure recurrence periods
+    const { category, amount } = budgetData; // Destructure recurrence periods
     const budgetsCollectionRef = getUserBudgetsCollectionRef(userId);
 
-    const q=query(budgetsCollectionRef,where("category","==",category))
-    const existingDocs=await getDocs(q);
-    
+    const q = query(budgetsCollectionRef, where("category", "==", category));
+    const existingDocs = await getDocs(q);
+
     // 2. Try to fetch the document
 
-    if(!existingDocs.empty) {
+    if (!existingDocs.empty) {
       // Budget document for this category already exists
-      throw new Error(
-        `A budget already exists for category '${category}'.`
-      );
+      throw new Error(`A budget already exists for category '${category}'.`);
     } else {
       // Budget document for this category does NOT exist, so create a new one
-      const budgetDocRef= await addDoc(budgetsCollectionRef, {
+      const budgetDocRef = await addDoc(budgetsCollectionRef, {
         category: category, // Ensure category is explicitly set as a field
         amount: amount,
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
       });
       return budgetDocRef.id; // Return the ID (category name)
     }
   } catch (e) {
-    console.error('Error adding/updating budget:', e);
+    console.error("Error adding/updating budget:", e);
     throw e; // Re-throw the error for the caller to handle
   }
 };
 
-
-type UpdatableBudgetFields = Partial<Omit<Budget, 'id' | 'createdAt' | 'userId'>>;
+type UpdatableBudgetFields = Partial<
+  Omit<Budget, "id" | "createdAt" | "userId">
+>;
 
 export const updateBudget = async (
   userId: string,
   budgetId: string,
-  updatedData: UpdatableBudgetFields
+  updatedData: UpdatableBudgetFields,
 ) => {
   if (!userId) {
     throw new Error("User ID is required.");
@@ -877,7 +1016,7 @@ export const updateBudget = async (
 
   try {
     // Get a reference to the specific budget document
-    const budgetDocRef = doc(db, 'users', userId, 'budgets', budgetId);
+    const budgetDocRef = doc(db, "users", userId, "budgets", budgetId);
 
     // Use updateDoc to update the specified fields
     // This will only update the fields provided in updatedData, leaving others untouched.
@@ -888,11 +1027,7 @@ export const updateBudget = async (
   }
 };
 
-export const deleteBudget = async (
-  userId: string,
-  categoryId: string
-) => {
-
+export const deleteBudget = async (userId: string, categoryId: string) => {
   if (!userId) {
     throw new Error("User ID is required to delete a budget.");
   }
@@ -902,7 +1037,7 @@ export const deleteBudget = async (
 
   try {
     // Get a reference to the specific budget document
-    const budgetDocRef = doc(db, 'users', userId, 'budgets', categoryId);
+    const budgetDocRef = doc(db, "users", userId, "budgets", categoryId);
 
     // Use deleteDoc to remove the document
     await deleteDoc(budgetDocRef);
@@ -912,17 +1047,17 @@ export const deleteBudget = async (
   }
 };
 
-export const pinBudget= async (
-  userId: string,
-  budgetId: string,
-)=>{
+export const pinBudget = async (userId: string, budgetId: string) => {
   try {
     const userDocRef = getUserDocRef(userId);
     // Use setDoc with merge: true to update only the defaultCurrency field
     // without overwriting other fields if the document already exists.
     await setDoc(userDocRef, { pinnedBudget: budgetId }, { merge: true });
   } catch (error) {
-    console.error(`Firestore: Error setting default currency for user ${userId}:`, error);
+    console.error(
+      `Firestore: Error setting default currency for user ${userId}:`,
+      error,
+    );
     throw error; // Re-throw to handle in calling function
   }
-}
+};

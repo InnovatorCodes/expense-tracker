@@ -1,32 +1,33 @@
 // app/dashboard/page.tsx
-"use client"
-import { useState } from 'react';
+"use client";
+import { useState } from "react";
 // Removed: import { useSession } from 'next-auth/react'; // No longer needed for client-side auth check here
 
 import BalanceCard from "@/components/balance-card";
 import RecentTransactions from "@/components/recent-transactions";
 import { ExpenseChart } from "@/components/expense-chart";
 import { PastWeekChart } from "@/components/past-week-chart";
-import DashboardBudget from '@/components/dashboard-budget';
-import { DashboardFloatingButton } from '@/components/floating-action-button';
-import TransactionModal from '@/components/add-transaction-modal';
-import { TransactionType } from '@/types/transaction';
-import { Toaster, toast} from 'sonner';
-import BudgetModal from '@/components/add-budget-modal';
+import DashboardBudget from "@/components/dashboard-budget";
+import { DashboardFloatingButton } from "@/components/floating-action-button";
+import TransactionModal from "@/components/add-transaction-modal";
+import { TransactionType } from "@/types/transaction";
+import { Toaster, toast } from "sonner";
+import BudgetModal from "@/components/add-budget-modal";
 
-import { useExchangeRates } from '@/providers/exchange-rates-provider';
-import { Loader2 } from 'lucide-react'; // Icons for loading/error states
+import { useExchangeRates } from "@/providers/exchange-rates-provider";
+import { Loader2 } from "lucide-react"; // Icons for loading/error states
 
-const defaultCurrency="INR";
+const defaultCurrency = "INR";
 
 export default function DashboardPage() {
-
   // Consume exchange rates and their loading/error states from the context
-  const { exchangeRates, loadingExchangeRates, errorExchangeRates } = useExchangeRates();
+  const { exchangeRates, loadingExchangeRates, errorExchangeRates } =
+    useExchangeRates();
 
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
-  const [selectedTransactionType, setSelectedTransactionType] = useState<TransactionType>('expense');
+  const [selectedTransactionType, setSelectedTransactionType] =
+    useState<TransactionType>("expense");
 
   const handleAddTransactionClick = (type: TransactionType) => {
     setSelectedTransactionType(type);
@@ -58,7 +59,9 @@ export default function DashboardPage() {
 
   // Handle errors from exchange rates fetch (still relevant even if authenticated)
   if (errorExchangeRates) {
-    toast.error("Could not fetch latest exchange rates. Data may be using default or slightly outdated rates.")
+    toast.error(
+      "Could not fetch latest exchange rates. Data may be using default or slightly outdated rates.",
+    );
   }
 
   // Final check to ensure currency and rates are available before rendering main content
@@ -84,16 +87,31 @@ export default function DashboardPage() {
       <div className="grid grid-cols-[repeat(auto-fit,minmax(500px,1fr))] gap-6">
         <div className="flex flex-col gap-6">
           {/* Pass defaultCurrency and exchangeRates from context */}
-          <BalanceCard currency={defaultCurrency} exchangeRates={exchangeRates} />
+          <BalanceCard
+            currency={defaultCurrency}
+            exchangeRates={exchangeRates}
+          />
           <RecentTransactions />
-          <DashboardBudget currency={defaultCurrency} exchangeRates={exchangeRates} />
+          <DashboardBudget
+            currency={defaultCurrency}
+            exchangeRates={exchangeRates}
+          />
         </div>
         <div className="flex flex-col gap-6">
-          <ExpenseChart currency={defaultCurrency} exchangeRates={exchangeRates} />
-          <PastWeekChart currency={defaultCurrency} exchangeRates={exchangeRates} />
+          <ExpenseChart
+            currency={defaultCurrency}
+            exchangeRates={exchangeRates}
+          />
+          <PastWeekChart
+            currency={defaultCurrency}
+            exchangeRates={exchangeRates}
+          />
         </div>
       </div>
-      <DashboardFloatingButton onAddTransaction={handleAddTransactionClick} onAddBudget={handleCreateBudgetClick} />
+      <DashboardFloatingButton
+        onAddTransaction={handleAddTransactionClick}
+        onAddBudget={handleCreateBudgetClick}
+      />
       <TransactionModal
         isOpen={isTransactionModalOpen}
         onOpenChange={setIsTransactionModalOpen}

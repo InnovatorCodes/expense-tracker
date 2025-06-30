@@ -1,10 +1,10 @@
-"use client" // This component needs to be a Client Component to use hooks
+"use client"; // This component needs to be a Client Component to use hooks
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { Pie, PieChart } from "recharts";
-import { useSession } from 'next-auth/react'; // To get the user session
+import { useSession } from "next-auth/react"; // To get the user session
 // Updated import: will use getMonthlyCategorizedExpenses instead of subscribeToMonthlyCategorizedExpenses
-import { subscribeToMonthlyCategorizedExpenses } from '@/utils/firebase'; // Updated import
+import { subscribeToMonthlyCategorizedExpenses } from "@/utils/firebase"; // Updated import
 import {
   Card,
   CardContent,
@@ -18,9 +18,9 @@ import {
   ChartTooltip,
   ChartTooltipContent,
   ChartLegend,
-  ChartLegendContent
+  ChartLegendContent,
 } from "@/components/ui/chart";
-import { Loader2, Info } from 'lucide-react'; // Added RefreshCw for refresh button
+import { Loader2, Info } from "lucide-react"; // Added RefreshCw for refresh button
 
 // Define the structure for aggregated chart data
 interface CategoryExpenseData {
@@ -31,12 +31,25 @@ interface CategoryExpenseData {
 
 // Function to generate consistent colors for categories
 const COLORS = [
-  "var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)",
-  "var(--chart-5)", "var(--chart-6)", "var(--chart-7)", "var(--chart-8)",
-  "var(--chart-9)", "var(--chart-10)"
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
+  "var(--chart-6)",
+  "var(--chart-7)",
+  "var(--chart-8)",
+  "var(--chart-9)",
+  "var(--chart-10)",
 ];
 
-export function ExpenseChart({currency, exchangeRates}: {currency: string, exchangeRates: Record<string,number>}) {
+export function ExpenseChart({
+  currency,
+  exchangeRates,
+}: {
+  currency: string;
+  exchangeRates: Record<string, number>;
+}) {
   const { data: session, status } = useSession();
   const userId = session?.user?.id;
 
@@ -44,31 +57,31 @@ export function ExpenseChart({currency, exchangeRates}: {currency: string, excha
   const [chartConfig, setChartConfig] = useState<ChartConfig>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
-  const [currentMonthName, setCurrentMonthName] = useState('');
+  const [currentMonthName, setCurrentMonthName] = useState("");
 
   const getCurrencySymbol = () => {
-  switch (currency) {
-    case 'INR':
-      return '₹';
-    case 'USD':
-      return '$';
-    default:
-      return '';
-  }
-};
+    switch (currency) {
+      case "INR":
+        return "₹";
+      case "USD":
+        return "$";
+      default:
+        return "";
+    }
+  };
 
   useEffect(() => {
     // Clear previous errors if userId becomes available
     setError("");
 
     const now = new Date();
-    setCurrentMonthName(now.toLocaleString('default', { month: 'long' }));
+    setCurrentMonthName(now.toLocaleString("default", { month: "long" }));
     setLoading(true);
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth() + 1; // Month is 1-indexed
 
     setLoading(true); // Set loading true while waiting for first snapshot
-    if(userId){
+    if (userId) {
       const unsubscribe = subscribeToMonthlyCategorizedExpenses(
         userId,
         currentYear,
@@ -85,7 +98,8 @@ export function ExpenseChart({currency, exchangeRates}: {currency: string, excha
           const maxVisibleCategories = 9; // Number of top categories to display before grouping
 
           categoryEntries.forEach(([category, amount], index) => {
-            if (index < maxVisibleCategories && amount > 0) { // Only include categories with non-zero amounts
+            if (index < maxVisibleCategories && amount > 0) {
+              // Only include categories with non-zero amounts
               topCategories.push({
                 name: category,
                 amount: amount,
@@ -105,29 +119,31 @@ export function ExpenseChart({currency, exchangeRates}: {currency: string, excha
           }
 
           // Create chartConfig dynamically based on the newChartData
-          const newChartConfig: ChartConfig = topCategories.reduce((acc, item) => {
-            acc[item.name] = {
-              label: item.name,
-              color: item.fill,
-            };
-            return acc;
-          }, {} as ChartConfig);
+          const newChartConfig: ChartConfig = topCategories.reduce(
+            (acc, item) => {
+              acc[item.name] = {
+                label: item.name,
+                color: item.fill,
+              };
+              return acc;
+            },
+            {} as ChartConfig,
+          );
 
           setChartData(topCategories);
           setChartConfig(newChartConfig);
           setLoading(false); // Data received, stop loading
         },
-        exchangeRates
+        exchangeRates,
       );
       return () => {
-      unsubscribe();
-    };
+        unsubscribe();
+      };
     }
     // Return the unsubscribe function for cleanup
-  }, [userId, status,exchangeRates]);
+  }, [userId, status, exchangeRates]);
 
   // Function to fetch and process categorized expenses
-  
 
   if (loading) {
     return (
@@ -158,14 +174,18 @@ export function ExpenseChart({currency, exchangeRates}: {currency: string, excha
             Expenses for {currentMonthName} {new Date().getFullYear()}
           </CardTitle>
         </div>
-        <CardDescription >Categorized spending overview</CardDescription>
+        <CardDescription>Categorized spending overview</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0 px-4">
         {chartData.length === 0 ? (
           <div className="flex flex-col items-center p-8 text-gray-400 bg-gray-100 dark:bg-gray-700 rounded-md m-4">
             <Info className="h-8 w-auto mb-3" />
-            <p className="font-semibold">No expenses recorded for this month.</p>
-            <p className="text-sm">Add some transactions to see your spending breakdown!</p>
+            <p className="font-semibold">
+              No expenses recorded for this month.
+            </p>
+            <p className="text-sm">
+              Add some transactions to see your spending breakdown!
+            </p>
           </div>
         ) : (
           <ChartContainer
@@ -173,22 +193,26 @@ export function ExpenseChart({currency, exchangeRates}: {currency: string, excha
             className="[&_.recharts-pie-label-text]:fill-foreground mx-auto max-h-[300px] pb-0"
           >
             <PieChart>
-              <ChartTooltip content={<ChartTooltipContent hideLabel formatter={(value, name) => [
-                  `${name as string}: ${getCurrencySymbol()}${parseFloat(value as string).toFixed(2)}`
-                ]} />}
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    hideLabel
+                    formatter={(value, name) => [
+                      `${name as string}: ${getCurrencySymbol()}${parseFloat(value as string).toFixed(2)}`,
+                    ]}
+                  />
+                }
               />
               <Pie
                 data={chartData}
                 dataKey="amount"
                 label={({ payload, percent }) =>
-                  `${(percent * 100).toFixed(0)}%${payload.value ? ` (${payload.value})` : ''}`
+                  `${(percent * 100).toFixed(0)}%${payload.value ? ` (${payload.value})` : ""}`
                 }
                 nameKey="name"
                 outerRadius={"80%"}
               />
-              <ChartLegend
-                content={<ChartLegendContent nameKey="name" />}
-              />
+              <ChartLegend content={<ChartLegendContent nameKey="name" />} />
             </PieChart>
           </ChartContainer>
         )}

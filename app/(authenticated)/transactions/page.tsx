@@ -1,29 +1,31 @@
 // app/transactions/page.tsx
 "use client";
 
-import React from 'react'; // React is implicitly imported for hooks like useState/useEffect if present
-import { useSession } from 'next-auth/react'; // Auth.js client provider (still needed for userId for transaction list)
+import React from "react"; // React is implicitly imported for hooks like useState/useEffect if present
+import { useSession } from "next-auth/react"; // Auth.js client provider (still needed for userId for transaction list)
 
-import { TransactionFloatingButton } from '@/components/floating-action-button'; // New FAB component
-import TransactionModal from '@/components/add-transaction-modal'; // New Modal component
-import TransactionList from '@/components/transactions-list';
-import BalanceCard from '@/components/balance-card';
+import { TransactionFloatingButton } from "@/components/floating-action-button"; // New FAB component
+import TransactionModal from "@/components/add-transaction-modal"; // New Modal component
+import TransactionList from "@/components/transactions-list";
+import BalanceCard from "@/components/balance-card";
 // Removed: import { getUserDefaultCurrency } from '@/utils/firebase'; // No longer fetched here
-import { Toaster } from 'sonner';
+import { Toaster } from "sonner";
 
-import { TransactionType } from '@/types/transaction'; // Import TransactionType
+import { TransactionType } from "@/types/transaction"; // Import TransactionType
 
 // Import the custom hooks to consume from the contexts
-import { useExchangeRates } from '@/providers/exchange-rates-provider';
-import { Loader2, AlertCircle } from 'lucide-react'; // Icons for loading/error states
+import { useExchangeRates } from "@/providers/exchange-rates-provider";
+import { Loader2, AlertCircle } from "lucide-react"; // Icons for loading/error states
 
-const defaultCurrency="INR";
+const defaultCurrency = "INR";
 
 const TransactionsPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [selectedTransactionType, setSelectedTransactionType] = React.useState<TransactionType>('expense');
+  const [selectedTransactionType, setSelectedTransactionType] =
+    React.useState<TransactionType>("expense");
 
-  const { exchangeRates, loadingExchangeRates, errorExchangeRates } = useExchangeRates();
+  const { exchangeRates, loadingExchangeRates, errorExchangeRates } =
+    useExchangeRates();
 
   const { data: session, status } = useSession(); // Still needed to get userId for TransactionList
   const userId = session?.user?.id;
@@ -38,13 +40,13 @@ const TransactionsPage: React.FC = () => {
     setIsModalOpen(false); // Close modal on success
   };
 
-  if (status === 'loading' || loadingExchangeRates) {
+  if (status === "loading" || loadingExchangeRates) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
         <div className="text-center p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
           <Loader2 className="h-10 w-10 animate-spin mx-auto text-blue-600 dark:text-blue-400 mb-4" />
           <p className="text-lg text-gray-700 dark:text-gray-300">
-            {status === 'loading' && "Authenticating user for transactions..."}
+            {status === "loading" && "Authenticating user for transactions..."}
             {loadingExchangeRates && "Fetching latest exchange rates..."}
           </p>
         </div>
@@ -59,7 +61,10 @@ const TransactionsPage: React.FC = () => {
         <div className="text-center p-8 bg-orange-100 rounded-lg text-orange-700 dark:bg-orange-900/20 dark:text-orange-300 shadow-lg">
           <AlertCircle className="h-10 w-10 mx-auto mb-4" />
           <p className="font-semibold text-xl mb-2">Currency Rates Warning</p>
-          <p className="text-md">Could not fetch latest exchange rates. Data may be using default or slightly outdated rates.</p>
+          <p className="text-md">
+            Could not fetch latest exchange rates. Data may be using default or
+            slightly outdated rates.
+          </p>
           <p className="text-sm mt-2">{errorExchangeRates}</p>
         </div>
       </div>
@@ -102,10 +107,15 @@ const TransactionsPage: React.FC = () => {
 
   return (
     <div className="p-4 md:p-8 space-y-8 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">Your Transactions</h1>
+      <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">
+        Your Transactions
+      </h1>
       {/* Pass defaultCurrency and exchangeRates from context */}
       <BalanceCard currency={defaultCurrency} exchangeRates={exchangeRates} />
-      <TransactionList currency={defaultCurrency} exchangeRates={exchangeRates} />
+      <TransactionList
+        currency={defaultCurrency}
+        exchangeRates={exchangeRates}
+      />
       {/* Floating Action Button */}
       <TransactionFloatingButton onAddTransaction={handleAddTransactionClick} />
 

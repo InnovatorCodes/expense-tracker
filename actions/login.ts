@@ -1,43 +1,46 @@
 "use server";
 
-import * as z from 'zod/v4';
-import { loginSchema } from '@/schemas/authentication-schema';
-import { prisma } from '@/prisma/prisma';
-import { signIn } from '@/auth';
-import { AuthError } from 'next-auth';
+import * as z from "zod/v4";
+import { loginSchema } from "@/schemas/authentication-schema";
+import { prisma } from "@/prisma/prisma";
+import { signIn } from "@/auth";
+import { AuthError } from "next-auth";
 
-export const login= async (data: z.infer<typeof loginSchema>)=>{
-    const validatedData=loginSchema.parse(data);
-    if(!validatedData){
-        return {error: "Invalid Credentials Provided"};
-    }
-    const {email, password}=validatedData;
-    const userExists=await prisma.user.findFirst({
-        where:{
-            email:email
-        },
+export const login = async (data: z.infer<typeof loginSchema>) => {
+  const validatedData = loginSchema.parse(data);
+  if (!validatedData) {
+    return { error: "Invalid Credentials Provided" };
+  }
+  const { email, password } = validatedData;
+  const userExists = await prisma.user.findFirst({
+    where: {
+      email: email,
+    },
+  });
+
+  if (!userExists) return { error: "User Not Found" };
+  else if (!userExists.password || !userExists.email)
+    return {
+      error:
+        "Looks like you signed up with Google. Please login with Google instead.",
+    };
+
+  try {
+    await signIn("credentials", {
+      email: userExists.email,
+      password: password,
+      redirectTo: "/dashboard",
     });
-
-    if(!userExists) return { error: "User Not Found"};
-    else if(!userExists.password || !userExists.email) return {error: "Looks like you signed up with Google. Please login with Google instead."};
-    
-    try {
-        await signIn("credentials", {
-            email: userExists.email,
-            password: password,
-            redirectTo: "/dashboard"
-        })
+  } catch (error) {
+    if (error instanceof AuthError) {
+      switch (error.type) {
+        case "CredentialsSignin":
+          return { error: "Invalid Credentials" };
+        default:
+          return { error: "Confirm your Email Address" };
+      }
     }
-    catch(error){
-        if(error instanceof AuthError){
-            switch(error.type){
-                case "CredentialsSignin":
-                    return {error: "Invalid Credentials"};
-                default: 
-                    return{error: "Confirm your Email Address"};
-            }
-        }
-        throw(error);
-    }
-    return { success: "User logged in successfully!"};
-}
+    throw error;
+  }
+  return { success: "User logged in successfully!" };
+};

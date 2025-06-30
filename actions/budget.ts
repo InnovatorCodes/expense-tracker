@@ -27,11 +27,11 @@ export async function createBudget(formData: z.infer<typeof budgetFormSchema>) {
   try {
     // Server-side validation using Zod
     const validatedData = budgetFormSchema.parse(formData);
-    if(!validatedData) {
+    if (!validatedData) {
       return { error: "Invalid budget data provided." };
     }
 
-    await addBudget(session.user.id, validatedData)
+    await addBudget(session.user.id, validatedData);
 
     return { success: "Budget added successfully!" };
   } catch (error) {
@@ -40,11 +40,17 @@ export async function createBudget(formData: z.infer<typeof budgetFormSchema>) {
       return { error: "Validation failed. Please check your input." };
     }
     console.error("Error creating budget:", error);
-    return { error: error instanceof Error ? error.message : "An unknown error occurred." };
+    return {
+      error:
+        error instanceof Error ? error.message : "An unknown error occurred.",
+    };
   }
 }
 
-export async function modifyBudget(updatedData: z.infer<typeof budgetFormSchema>,budgetId: string) {
+export async function modifyBudget(
+  updatedData: z.infer<typeof budgetFormSchema>,
+  budgetId: string,
+) {
   const session = await auth(); // Get the authenticated user's session on the server
 
   if (!session?.user?.id) {
@@ -54,7 +60,7 @@ export async function modifyBudget(updatedData: z.infer<typeof budgetFormSchema>
   try {
     // Server-side validation using Zod
     const validatedData = budgetFormSchema.parse(updatedData);
-    if(!validatedData) {
+    if (!validatedData) {
       return { error: "Invalid budget data provided." };
     }
     // Add the transaction to Firestore
