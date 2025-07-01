@@ -124,12 +124,6 @@ const RecentTransactions = () => {
                       {t.type == "expense" ? "-" : "+"}
                       {getCurrencySymbol(t.currency) + t.amount.toFixed(2)}
                     </p>
-                    {/* The ellipsis button is often for more options like Edit/Delete.
-                        If deletion is needed, consider an icon button like Trash2.
-                    */}
-                    {/* <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1">
-                        <Ellipsis size={18} />
-                    </button> */}
                   </div>
                 </div>
               );

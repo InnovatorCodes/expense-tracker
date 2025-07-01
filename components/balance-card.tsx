@@ -52,12 +52,7 @@ const BalanceCard = ({
       );
 
       // Also fetch the user's default currency
-    } else if (status === "unauthenticated" || !userId) {
-      console.log("BalanceDisplay: User not authenticated, resetting balance.");
-      setBalance(0);
-      setLoading(false);
     }
-
     return () => {
       if (unsubscribeBalance) {
         unsubscribeBalance();

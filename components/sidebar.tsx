@@ -8,7 +8,7 @@ import {
   LogOut,
   Wallet,
   Menu,
-  X
+  X,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { usePathname } from "next/navigation";
@@ -36,14 +36,20 @@ const Sidebar = () => {
   return (
     <>
       {/* Hamburger menu icon for mobile */}
-      <div className={`sm:hidden fixed top-4 ${isSidebarOpen? "top-20 right-4": "left-4"} z-50`}>
+      <div
+        className={`sm:hidden fixed top-4 ${isSidebarOpen ? "top-20 right-4" : "left-4"} z-50`}
+      >
         <Button
           variant="ghost"
           size="icon"
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           className="bg-white dark:bg-gray-800 p-2 rounded-lg shadow-md"
         >
-          {isSidebarOpen? <X size={30} className="text-gray-800 dark:text-white"></X>: <Menu size={30} className="text-gray-800 dark:text-white" />}
+          {isSidebarOpen ? (
+            <X size={30} className="text-gray-800 dark:text-white"></X>
+          ) : (
+            <Menu size={30} className="text-gray-800 dark:text-white" />
+          )}
         </Button>
       </div>
 
@@ -80,8 +86,8 @@ const Sidebar = () => {
               })}
             </ul>
           </nav>
-          <form className="mt-auto max-sm:mt-4" action={signOut}>
-            <Button className="text-xl bg-gray-800 text-white w-full p-6 flex justify-start">
+          <form className="lg:fixed bottom-4 max-sm:mt-4" action={signOut}>
+            <Button className="text-xl bg-gray-800 text-white w-[100%] p-6 flex items-center gap-4 justify-start hover:bg-red-800">
               <LogOut style={{ height: "25px", width: "25px" }} />
               Logout
             </Button>

@@ -11,7 +11,7 @@ import { useExchangeRates } from "@/providers/exchange-rates-provider";
 
 const BudgetsPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const {exchangeRates} =useExchangeRates()
+  const { exchangeRates } = useExchangeRates();
 
   const { data: session } = useSession(); // Get session data and status from Auth.js
   const userId = session?.user?.id;
@@ -42,7 +42,7 @@ const BudgetsPage = () => {
       <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">
         Your Budgets
       </h1>
-      <BudgetsList currency={'INR'} exchangeRates={exchangeRates} />
+      <BudgetsList currency={"INR"} exchangeRates={exchangeRates} />
       {/* Floating Action Button */}
       <BudgetFloatingButton onAddBudget={handleCreateBudgetClick} />
 
@@ -51,7 +51,7 @@ const BudgetsPage = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSuccess={handleBudgetSuccess}
-        currency={'INR'}
+        currency={"INR"}
       />
       <Toaster />
     </div>

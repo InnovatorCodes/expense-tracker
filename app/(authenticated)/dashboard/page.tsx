@@ -20,8 +20,7 @@ const defaultCurrency = "INR";
 
 export default function DashboardPage() {
   // Consume exchange rates and their loading/error states from the context
-  const { exchangeRates, errorExchangeRates } =
-    useExchangeRates();
+  const { exchangeRates, errorExchangeRates } = useExchangeRates();
 
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);

@@ -133,22 +133,9 @@ const DashboardBudget: React.FC<{
   if (status === "loading" || loading) {
     return (
       <Card className="dark:bg-gray-800">
-        <CardContent className="p-6 text-center">
+        <CardContent className="p-6 text-center text-gray-500 dark:text-gray-400">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
           Loading Budgets...
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (status === "unauthenticated" || !userId) {
-    return (
-      <Card className="dark:bg-gray-800">
-        <CardContent className="text-center p-8 rounded-lg">
-          <p className="font-semibold mb-2">
-            Please log in to view your budgets.
-          </p>
-          <p className="text-sm">Budget data is securely stored per user.</p>
         </CardContent>
       </Card>
     );
@@ -161,7 +148,7 @@ const DashboardBudget: React.FC<{
           <CardTitle className="text-xl font-bold">Pinned Budgets</CardTitle>
           <CardDescription></CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 text-gray-500 dark:text-gray-400">
           {!budget ? (
             <div className="text-center p-8 rounded-md">
               <Info className="h-8 w-8 mx-auto mb-3" />

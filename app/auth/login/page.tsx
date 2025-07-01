@@ -142,7 +142,7 @@ const LoginPage: React.FC = () => {
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing
-                    Up...
+                    In...
                   </>
                 ) : (
                   "Sign In with Email"

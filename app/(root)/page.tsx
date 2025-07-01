@@ -12,21 +12,21 @@ export default function LandingPage() {
           <div className="bg-indigo-600 p-2 rounded-lg">
             <DollarSign className="text-white" size={28} />
           </div>
-          <span className="ml-2 text-3xl font-bold text-gray-900 dark:text-white">
+          <span className="ml-2 text-3xl font-bold text-gray-900 dark:text-white max-sm:text-xl">
             SpendSense
           </span>
         </Link>
-        <nav className="flex items-center gap-4 sm:gap-6">
+        <nav className="flex items-center gap-4 sm:gap-6 ml-2">
           <ThemeButton></ThemeButton>
           <Link
             href="/auth/login"
-            className="px-4 py-2 text-sm font-medium rounded-md text-indigo-600 hover:bg-indigo-50 dark:hover:bg-gray-800"
+            className="px-4 py-2 max-sm:px-2 text-sm font-medium rounded-md text-indigo-600 hover:bg-indigo-50 dark:hover:bg-gray-800"
           >
             Login
           </Link>
           <Link
             href="/dashboard"
-            className="px-4 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+            className="px-4 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 max-sm:hidden text-center"
           >
             Get Started
           </Link>

@@ -33,7 +33,7 @@ export default async function AuthenticatedLayout({
         <div className="bg-indigo-600 p-2 rounded-lg">
           <DollarSign className="text-white" size={28} />
         </div>
-        <span className="ml-2 text-3xl font-bold text-gray-900 dark:text-white">
+        <span className="ml-2 text-3xl font-bold text-gray-900 dark:text-white max-sm:text-xl">
           SpendSense
         </span>
       </Link>

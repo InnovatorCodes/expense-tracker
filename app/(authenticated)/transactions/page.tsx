@@ -24,8 +24,7 @@ const TransactionsPage: React.FC = () => {
   const [selectedTransactionType, setSelectedTransactionType] =
     React.useState<TransactionType>("expense");
 
-  const { exchangeRates } =
-    useExchangeRates();
+  const { exchangeRates } = useExchangeRates();
 
   const { data: session } = useSession(); // Still needed to get userId for TransactionList
   const userId = session?.user?.id;

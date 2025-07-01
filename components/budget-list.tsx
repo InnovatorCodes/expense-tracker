@@ -126,19 +126,6 @@ const BudgetsList = ({
     );
   }
 
-  if (status === "unauthenticated" || !userId) {
-    return (
-      <Card className="dark:bg-gray-800">
-        <CardContent className="text-center p-8 rounded-lg">
-          <p className="font-semibold mb-2">
-            Please log in to view your budgets.
-          </p>
-          <p className="text-sm">Budget data is securely stored per user.</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <>
       <Card className="w-full shadow-lg rounded-lg">
