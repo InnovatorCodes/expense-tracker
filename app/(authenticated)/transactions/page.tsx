@@ -15,7 +15,7 @@ import { TransactionType } from "@/types/transaction"; // Import TransactionType
 
 // Import the custom hooks to consume from the contexts
 import { useExchangeRates } from "@/providers/exchange-rates-provider";
-import { Loader2, AlertCircle } from "lucide-react"; // Icons for loading/error states
+import { AlertCircle } from "lucide-react"; // Icons for loading/error states
 
 const defaultCurrency = "INR";
 
@@ -24,10 +24,10 @@ const TransactionsPage: React.FC = () => {
   const [selectedTransactionType, setSelectedTransactionType] =
     React.useState<TransactionType>("expense");
 
-  const { exchangeRates, loadingExchangeRates, errorExchangeRates } =
+  const { exchangeRates } =
     useExchangeRates();
 
-  const { data: session, status } = useSession(); // Still needed to get userId for TransactionList
+  const { data: session } = useSession(); // Still needed to get userId for TransactionList
   const userId = session?.user?.id;
 
   const handleAddTransactionClick = (type: TransactionType) => {
@@ -39,52 +39,6 @@ const TransactionsPage: React.FC = () => {
     // Optionally show a toast notification here
     setIsModalOpen(false); // Close modal on success
   };
-
-  if (status === "loading" || loadingExchangeRates) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="text-center p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-          <Loader2 className="h-10 w-10 animate-spin mx-auto text-blue-600 dark:text-blue-400 mb-4" />
-          <p className="text-lg text-gray-700 dark:text-gray-300">
-            {status === "loading" && "Authenticating user for transactions..."}
-            {loadingExchangeRates && "Fetching latest exchange rates..."}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // Handle errors from exchange rates fetch (still relevant)
-  if (errorExchangeRates) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="text-center p-8 bg-orange-100 rounded-lg text-orange-700 dark:bg-orange-900/20 dark:text-orange-300 shadow-lg">
-          <AlertCircle className="h-10 w-10 mx-auto mb-4" />
-          <p className="font-semibold text-xl mb-2">Currency Rates Warning</p>
-          <p className="text-md">
-            Could not fetch latest exchange rates. Data may be using default or
-            slightly outdated rates.
-          </p>
-          <p className="text-sm mt-2">{errorExchangeRates}</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Final check for data availability before rendering the main content.
-  // defaultCurrency will be a string (e.g., "INR") and exchangeRates will be an object.
-  if (!exchangeRates) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="text-center p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-          <Loader2 className="h-10 w-10 animate-spin mx-auto text-gray-500 dark:text-gray-400 mb-4" />
-          <p className="text-lg text-gray-700 dark:text-gray-300">
-            Preparing transactions view...
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   // Handle unauthenticated user if they somehow reach this page (should be handled by layout.tsx)
   // This check serves as a final safeguard on the client side.

@@ -15,8 +15,7 @@ interface ExchangeRates {
   [targetCurrency: string]: number; // e.g., { "EUR": 0.92, "INR": 83.5 } if base is USD
 }
 interface ExchangeRatesContextType {
-  exchangeRates: ExchangeRates | null;
-  loadingExchangeRates: boolean;
+  exchangeRates: ExchangeRates;
   errorExchangeRates: string | null;
 }
 export const ExchangeRatesContext = createContext<
@@ -38,21 +37,15 @@ const DEFAULT_EXCHANGE_RATES: ExchangeRates = {
   GBP: 0.0095, // Example: 1 INR = 0.0095 GBP
   JPY: 1.89, // Example: 1 INR = 1.89 JPY
   AUD: 0.018, // Example: 1 INR = 0.018 AUD
-  // Note: These rates assume 'INR' is the base currency for the API call initially.
-  // The conversion logic in consuming components will need to handle how to use these.
-  // For the `latest/{baseCurrency}` API endpoint, the returned `conversion_rates`
-  // object will already have the `baseCurrency` as 1.0 and others relative to it.
-  // So, this default is used when the base currency is unknown or not yet loaded.
 };
 
 export const ExchangeRatesProvider: React.FC<ExchangeRatesProviderProps> = ({
   children,
 }) => {
   // Initialize with default rates
-  const [exchangeRates, setExchangeRates] = useState<ExchangeRates | null>(
+  const [exchangeRates, setExchangeRates] = useState<ExchangeRates>(
     DEFAULT_EXCHANGE_RATES,
   );
-  const [loadingExchangeRates, setLoadingExchangeRates] = useState(false);
   const [errorExchangeRates, setErrorExchangeRates] = useState<string | null>(
     null,
   );
@@ -61,7 +54,6 @@ export const ExchangeRatesProvider: React.FC<ExchangeRatesProviderProps> = ({
 
   // --- Fetch Exchange Rates Effect ---
   const fetchAndSetExchangeRates = useCallback(async (baseCurrency: string) => {
-    setLoadingExchangeRates(true);
     setErrorExchangeRates(null);
     try {
       // Using the user's defaultCurrency as the base for the API call
@@ -86,7 +78,6 @@ export const ExchangeRatesProvider: React.FC<ExchangeRatesProviderProps> = ({
       );
       // If fetching fails, exchangeRates remains at its last known valid state (either default or previously fetched)
     } finally {
-      setLoadingExchangeRates(false);
     }
   }, []);
 
@@ -96,7 +87,6 @@ export const ExchangeRatesProvider: React.FC<ExchangeRatesProviderProps> = ({
 
   const contextValue = {
     exchangeRates,
-    loadingExchangeRates,
     errorExchangeRates,
   };
 

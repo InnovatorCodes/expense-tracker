@@ -15,13 +15,12 @@ import { Toaster, toast } from "sonner";
 import BudgetModal from "@/components/add-budget-modal";
 
 import { useExchangeRates } from "@/providers/exchange-rates-provider";
-import { Loader2 } from "lucide-react"; // Icons for loading/error states
 
 const defaultCurrency = "INR";
 
 export default function DashboardPage() {
   // Consume exchange rates and their loading/error states from the context
-  const { exchangeRates, loadingExchangeRates, errorExchangeRates } =
+  const { exchangeRates, errorExchangeRates } =
     useExchangeRates();
 
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
@@ -44,40 +43,10 @@ export default function DashboardPage() {
     setIsBudgetModalOpen(false); // Close modal on success
   };
 
-  if (loadingExchangeRates) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="text-center p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-          <Loader2 className="h-10 w-10 animate-spin mx-auto text-blue-600 dark:text-blue-400 mb-4" />
-          <p className="text-lg text-gray-700 dark:text-gray-300">
-            {loadingExchangeRates && "Fetching latest exchange rates..."}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   // Handle errors from exchange rates fetch (still relevant even if authenticated)
   if (errorExchangeRates) {
     toast.error(
-      "Could not fetch latest exchange rates. Data may be using default or slightly outdated rates.",
-    );
-  }
-
-  // Final check to ensure currency and rates are available before rendering main content
-  // Since authentication is handled server-side, if we reach here, isAuthenticated should be true.
-  // defaultCurrency will be a string (e.g., "INR") and exchangeRates will be an object.
-  // We explicitly check for null to ensure data has been loaded from the providers.
-  if (!exchangeRates) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="text-center p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-          <Loader2 className="h-10 w-10 animate-spin mx-auto text-gray-500 dark:text-gray-400 mb-4" />
-          <p className="text-lg text-gray-700 dark:text-gray-300">
-            Preparing your dashboard...
-          </p>
-        </div>
-      </div>
+      "Could not fetch latest exchange rates. Data may be using slightly outdated rates",
     );
   }
 
