@@ -13,12 +13,15 @@ import TransactionModal from "@/components/add-transaction-modal";
 import { TransactionType } from "@/types/transaction";
 import { Toaster, toast } from "sonner";
 import BudgetModal from "@/components/add-budget-modal";
+import { useSession } from "next-auth/react";
 
 import { useExchangeRates } from "@/providers/exchange-rates-provider";
 
 const defaultCurrency = "INR";
 
 export default function DashboardPage() {
+  const {data: session } =useSession();
+  const userId = session?.user?.id;
   // Consume exchange rates and their loading/error states from the context
   const { exchangeRates, errorExchangeRates } = useExchangeRates();
 
@@ -56,6 +59,7 @@ export default function DashboardPage() {
         <div className="flex flex-col gap-6">
           {/* Pass defaultCurrency and exchangeRates from context */}
           <BalanceCard
+            key={userId || 'unauthenticated'}
             currency={defaultCurrency}
             exchangeRates={exchangeRates}
           />
