@@ -7,6 +7,7 @@ import { loginSchema } from "@/schemas/authentication-schema";
 import { login } from "@/actions/login";
 import { GoogleLogin } from "@/components/google-button";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
 // Import shadcn/ui components
@@ -34,6 +35,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 const LoginPage: React.FC = () => {
   // Redirect to dashboard if user is already logged in
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -53,6 +55,11 @@ const LoginPage: React.FC = () => {
         setError(res.error);
         setLoading(false);
       } else {
+        console.log("Client Login: Login successful. Forcing router refresh to revalidate session...");
+        router.refresh(); // Crucial: Invalidate cache and trigger session revalidation
+
+        console.log("Client Login: Redirecting to dashboard...");
+        router.push('/dashboard'); // Navigate to the dashboard
         setError("");
         setLoading(false);
       }

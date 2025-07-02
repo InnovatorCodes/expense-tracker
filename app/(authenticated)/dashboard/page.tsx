@@ -21,9 +21,7 @@ const defaultCurrency = "INR";
 
 export default function DashboardPage() {
   const {data: session,status } =useSession();
-  let userId=null;
-  if(status!='loading')
-  userId = session?.user?.id;
+  const userId = session?.user?.id;
 
   console.log(`[DashboardPage Render] userId for key: "${userId}" | status: "${status}" | Session object:`, session);
 

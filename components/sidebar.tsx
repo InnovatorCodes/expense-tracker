@@ -14,8 +14,10 @@ import { Button } from "./ui/button";
 import { usePathname } from "next/navigation";
 import { signOut } from "@/actions/signout";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const Sidebar = () => {
+  const router=useRouter();
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -86,7 +88,15 @@ const Sidebar = () => {
               })}
             </ul>
           </nav>
-          <form className="lg:fixed bottom-4 max-sm:mt-4" action={signOut}>
+          <form className="lg:fixed bottom-4 max-sm:mt-4" action={()=>{
+            signOut()
+            console.log("Client Logout: Forcing router refresh to revalidate session...");
+            router.refresh();
+
+            // 3. Redirect to your desired post-logout page (e.g., homepage)
+            console.log("Client Logout: Redirecting to homepage...");
+            router.push('/');
+          }}>
             <Button className="text-xl bg-gray-800 text-white w-[100%] p-6 flex items-center gap-4 justify-start hover:bg-red-800">
               <LogOut style={{ height: "25px", width: "25px" }} />
               Logout
