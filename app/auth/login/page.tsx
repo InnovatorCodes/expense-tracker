@@ -32,10 +32,12 @@ import { Button } from "@/components/ui/button";
 import { FormError } from "@/components/form-error";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useSession } from "next-auth/react";
 
 const LoginPage: React.FC = () => {
   // Redirect to dashboard if user is already logged in
   const router = useRouter();
+  const { update }= useSession();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -54,16 +56,20 @@ const LoginPage: React.FC = () => {
       if (res.error) {
         setError(res.error);
         setLoading(false);
-      } else {
-        console.log("Client Login: Login successful. Forcing router refresh to revalidate session...");
-        router.refresh(); // Crucial: Invalidate cache and trigger session revalidation
-
-        console.log("Client Login: Redirecting to dashboard...");
-        router.push('/dashboard'); // Navigate to the dashboard
+      } else {        
         setError("");
         setLoading(false);
       }
     });
+    // 2. Force a router refresh (still good for general App Router cache invalidation)
+    console.log("Client Login: Login successful. Calling useSession().update() to revalidate session.");
+    await update(); // This ensures useSession consumers get the latest session
+    console.log("Client Login: Forcing router refresh...");
+    router.refresh();
+
+    // 3. Redirect to the dashboard
+    console.log("Client Login: Redirecting to dashboard...");
+    router.push('/dashboard');
   };
   // Handles signing in with Google OAuth provider
 

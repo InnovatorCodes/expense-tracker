@@ -15,9 +15,11 @@ import { usePathname } from "next/navigation";
 import { signOut } from "@/actions/signout";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 const Sidebar = () => {
   const router=useRouter();
+  const { update }=useSession();
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -88,9 +90,10 @@ const Sidebar = () => {
               })}
             </ul>
           </nav>
-          <form className="lg:fixed bottom-4 max-sm:mt-4" action={()=>{
+          <form className="lg:fixed bottom-4 max-sm:mt-4" action={async ()=>{
             signOut()
             console.log("Client Logout: Forcing router refresh to revalidate session...");
+            await update();
             router.refresh();
 
             // 3. Redirect to your desired post-logout page (e.g., homepage)
