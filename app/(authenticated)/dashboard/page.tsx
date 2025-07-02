@@ -20,11 +20,10 @@ import { useExchangeRates } from "@/providers/exchange-rates-provider";
 const defaultCurrency = "INR";
 
 export default function DashboardPage() {
-  const {data: session,status } =useSession();
+  const {data: session } =useSession();
   const userId = session?.user?.id;
 
-  console.log(`[DashboardPage Render] userId for key: "${userId}" | status: "${status}" | Session object:`, session);
-
+  window.location.reload();
   // Consume exchange rates and their loading/error states from the context
   const { exchangeRates, errorExchangeRates } = useExchangeRates();
 

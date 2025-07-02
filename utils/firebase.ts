@@ -231,19 +231,15 @@ export const subscribeToBalance = (
   }
 
   const userDocRef = getUserDocRef(userId);
-  console.log(`[subscribeToBalance] Setting up listener for user: ${userId}`)
 
   const unsubscribe = onSnapshot(
     userDocRef,
     (docSnap) => {
       if (docSnap.exists()) {
-        console.log(`[subscribeToBalance:onSnapshot] Received snapshot for user: ${userId}`); 
         // Safely cast and default to 0 if 'currentBalance' field is missing or not a number
         const balance = (docSnap.data()?.currentBalance as number) || 0;
-        console.log(`[subscribeToBalance:onSnapshot] Doc exists. Balance: ${balance}`);
         callback(balance);
       } else {
-        console.log(`[subscribeToBalance:onSnapshot] Doc does NOT exist. Setting balance to 0.`);
         callback(0); // Default balance if user doc doesn't exist
       }
     },

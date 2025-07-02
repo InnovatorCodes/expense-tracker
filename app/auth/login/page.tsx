@@ -61,7 +61,7 @@ const LoginPage: React.FC = () => {
         setLoading(false);
       }
     });
-    // 2. Force a router refresh (still good for general App Router cache invalidation)
+    // 2. Force a router refresh (still good for general App Router cache invalidation) 
     console.log("Client Login: Login successful. Calling useSession().update() to revalidate session.");
     await update(); // This ensures useSession consumers get the latest session
     console.log("Client Login: Forcing router refresh...");
@@ -70,6 +70,7 @@ const LoginPage: React.FC = () => {
     // 3. Redirect to the dashboard
     console.log("Client Login: Redirecting to dashboard...");
     router.push('/dashboard');
+    window.location.reload();
   };
   // Handles signing in with Google OAuth provider
 
