@@ -7,7 +7,6 @@ import { loginSchema } from "@/schemas/authentication-schema";
 import { login } from "@/actions/login";
 import { GoogleLogin } from "@/components/google-button";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
 // Import shadcn/ui components
@@ -32,12 +31,9 @@ import { Button } from "@/components/ui/button";
 import { FormError } from "@/components/form-error";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useSession } from "next-auth/react";
 
 const LoginPage: React.FC = () => {
   // Redirect to dashboard if user is already logged in
-  const router = useRouter();
-  const { update }= useSession();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -61,16 +57,6 @@ const LoginPage: React.FC = () => {
         setLoading(false);
       }
     });
-    // 2. Force a router refresh (still good for general App Router cache invalidation) 
-    console.log("Client Login: Login successful. Calling useSession().update() to revalidate session.");
-    await update(); // This ensures useSession consumers get the latest session
-    console.log("Client Login: Forcing router refresh...");
-    router.refresh();
-
-    // 3. Redirect to the dashboard
-    console.log("Client Login: Redirecting to dashboard...");
-    router.push('/dashboard');
-    window.location.reload();
   };
   // Handles signing in with Google OAuth provider
 

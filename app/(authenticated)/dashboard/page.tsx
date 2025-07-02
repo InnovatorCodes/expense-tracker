@@ -23,6 +23,13 @@ export default function DashboardPage() {
   const {data: session } =useSession();
   const userId = session?.user?.id;
 
+  const reloadFlag = sessionStorage.getItem('justRefreshed');
+
+  if(reloadFlag!="true"){
+    sessionStorage.setItem('justRefreshed', 'true');
+    window.location.reload();
+  }
+
   // Consume exchange rates and their loading/error states from the context
   const { exchangeRates, errorExchangeRates } = useExchangeRates();
 
