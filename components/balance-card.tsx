@@ -52,6 +52,11 @@ const BalanceCard = ({
       );
 
       // Also fetch the user's default currency
+    } else {
+      setBalance(0);
+      setIncome(0);
+      setExpenses(0);
+      setLoading(false);
     }
     return () => {
       if (unsubscribeBalance) {
@@ -61,7 +66,7 @@ const BalanceCard = ({
         unsubscribeMonthlyTotals();
       }
     };
-  }, [userId, status, exchangeRates]); // Re-run when user ID or auth status changes
+  }, [session, userId, status, exchangeRates]); // Re-run when user ID or auth status changes
 
   const getCurrencySymbol = (currencyCode: string) => {
     if (currencySymbols[currencyCode as keyof typeof currencySymbols]) {
