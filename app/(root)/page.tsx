@@ -1,12 +1,13 @@
 // app/page.tsx
 import { DollarSign, BarChart, ShieldCheck, ArrowRight } from "lucide-react";
 import { ThemeButton } from "@/components/theme-button";
+import { ClearSessionStorage } from "@/components/clear-refreshed";
 import Link from "next/link";
 
 export default function LandingPage() {
-  sessionStorage.removeItem("refreshed");
   return (
     <div className="flex flex-col min-h-screen">
+      <ClearSessionStorage />
       {/* Header */}
       <header className="px-4 lg:px-6 h-16 flex items-center bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50">
         <Link href="/" className="flex items-center justify-center mr-auto">

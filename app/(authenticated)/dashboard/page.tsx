@@ -1,6 +1,6 @@
 // app/dashboard/page.tsx
 "use client";
-import { useState } from "react";
+import { useState,useEffect } from "react";
 // Removed: import { useSession } from 'next-auth/react'; // No longer needed for client-side auth check here
 
 import BalanceCard from "@/components/balance-card";
@@ -23,12 +23,16 @@ export default function DashboardPage() {
   const { data: session } = useSession();
   const userId = session?.user?.id;
 
-  const reloadFlag = sessionStorage.getItem("refreshed");
+  useEffect(() => {
+      if (typeof window !== 'undefined') {
+        const reloadFlag = sessionStorage.getItem("refreshed");
 
-  if (reloadFlag != "true") {
-    sessionStorage.setItem("refreshed", "true");
-    window.location.reload();
-  }
+        if (reloadFlag != "true") {
+          sessionStorage.setItem("refreshed", "true");
+          window.location.reload();
+        }
+      }
+    }, []); // Runs once on mount
 
   // Consume exchange rates and their loading/error states from the context
   const { exchangeRates, errorExchangeRates } = useExchangeRates();
