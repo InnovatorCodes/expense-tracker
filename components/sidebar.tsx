@@ -91,6 +91,8 @@ const Sidebar = () => {
             </ul>
           </nav>
           <form className="lg:fixed bottom-4 max-sm:mt-4" action={async ()=>{
+            sessionStorage.removeItem('refreshed')
+            console.log(sessionStorage.getItem('refreshed'));
             signOut()
             console.log("Client Logout: Forcing router refresh to revalidate session...");
             await update();
