@@ -4,6 +4,6 @@ import { signOut as nextAuthSignOut } from "@/auth"; // Assuming your actual sig
 
 export async function signOut() {
   await nextAuthSignOut({
-    redirectTo: "/"
+    redirectTo: "/",
   });
 }

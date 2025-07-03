@@ -20,13 +20,13 @@ import { useExchangeRates } from "@/providers/exchange-rates-provider";
 const defaultCurrency = "INR";
 
 export default function DashboardPage() {
-  const {data: session } =useSession();
+  const { data: session } = useSession();
   const userId = session?.user?.id;
 
-  const reloadFlag = sessionStorage.getItem('refreshed');
+  const reloadFlag = sessionStorage.getItem("refreshed");
 
-  if(reloadFlag!="true"){
-    sessionStorage.setItem('refreshed', 'true');
+  if (reloadFlag != "true") {
+    sessionStorage.setItem("refreshed", "true");
     window.location.reload();
   }
 
@@ -67,7 +67,7 @@ export default function DashboardPage() {
         <div className="flex flex-col gap-6">
           {/* Pass defaultCurrency and exchangeRates from context */}
           <BalanceCard
-            key={userId || 'unauthenticated'}
+            key={userId || "unauthenticated"}
             currency={defaultCurrency}
             exchangeRates={exchangeRates}
           />

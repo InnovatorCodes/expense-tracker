@@ -52,7 +52,7 @@ const LoginPage: React.FC = () => {
       if (res.error) {
         setError(res.error);
         setLoading(false);
-      } else {        
+      } else {
         setError("");
         setLoading(false);
       }

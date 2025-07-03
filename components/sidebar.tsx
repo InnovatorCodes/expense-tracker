@@ -18,8 +18,8 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
 const Sidebar = () => {
-  const router=useRouter();
-  const { update }=useSession();
+  const router = useRouter();
+  const { update } = useSession();
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -90,18 +90,16 @@ const Sidebar = () => {
               })}
             </ul>
           </nav>
-          <form className="lg:fixed bottom-4 max-sm:mt-4" action={async ()=>{
-            sessionStorage.removeItem('refreshed')
-            console.log(sessionStorage.getItem('refreshed'));
-            signOut()
-            console.log("Client Logout: Forcing router refresh to revalidate session...");
-            await update();
-            router.refresh();
-
-            // 3. Redirect to your desired post-logout page (e.g., homepage)
-            console.log("Client Logout: Redirecting to homepage...");
-            router.push('/');
-          }}>
+          <form
+            className="lg:fixed bottom-4 max-sm:mt-4"
+            action={async () => {
+              signOut();
+              await update();
+              router.refresh();
+              router.push("/");
+              sessionStorage.removeItem("refreshed");
+            }}
+          >
             <Button className="text-xl bg-gray-800 text-white w-[100%] p-6 flex items-center gap-4 justify-start hover:bg-red-800">
               <LogOut style={{ height: "25px", width: "25px" }} />
               Logout
