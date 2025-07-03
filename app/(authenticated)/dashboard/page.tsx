@@ -26,7 +26,7 @@ export default function DashboardPage() {
   const reloadFlag = sessionStorage.getItem('justRefreshed');
 
   if(reloadFlag!="true"){
-    sessionStorage.setItem('justRefreshed', 'true');
+    sessionStorage.setItem('refreshed', 'true');
     window.location.reload();
   }
 
