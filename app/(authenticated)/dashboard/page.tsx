@@ -23,7 +23,7 @@ export default function DashboardPage() {
   const {data: session } =useSession();
   const userId = session?.user?.id;
 
-  const reloadFlag = sessionStorage.getItem('justRefreshed');
+  const reloadFlag = sessionStorage.getItem('refreshed');
 
   if(reloadFlag!="true"){
     sessionStorage.setItem('refreshed', 'true');
