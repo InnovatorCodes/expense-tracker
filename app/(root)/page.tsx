@@ -4,6 +4,7 @@ import { ThemeButton } from "@/components/theme-button";
 import Link from "next/link";
 
 export default function LandingPage() {
+  sessionStorage.removeItem("refreshed");
   return (
     <div className="flex flex-col min-h-screen">
       {/* Header */}

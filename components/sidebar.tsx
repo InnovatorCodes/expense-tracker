@@ -97,7 +97,6 @@ const Sidebar = () => {
               await update();
               router.refresh();
               router.push("/");
-              sessionStorage.removeItem("refreshed");
             }}
           >
             <Button className="text-xl bg-gray-800 text-white w-[100%] p-6 flex items-center gap-4 justify-start hover:bg-red-800">
