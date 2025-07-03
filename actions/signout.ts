@@ -3,8 +3,9 @@
 import { signOut as nextAuthSignOut } from "@/auth"; // Assuming your actual signOut is here
 
 export async function signOut() {
+  sessionStorage.removeItem('refreshed')
+  console.log(sessionStorage.getItem('refreshed'));
   await nextAuthSignOut({
     redirectTo: "/"
   });
-  sessionStorage.removeItem('refreshed')
 }
