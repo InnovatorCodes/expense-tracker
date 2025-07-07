@@ -3,6 +3,7 @@
 A feature-rich expense tracker application built with modern web technologies to help you manage your finances effectively. This application allows users to track their expenses and budgets with support for multiple currencies, real-time data updates, and a customizable user interface.
 
 ---
+**Live Demo:** [Check out the live demo here!](spendsense-tracker.vercel.app)
 
 ## ✨ Features
 
@@ -44,7 +45,7 @@ Make sure you have Node.js and npm (or yarn/pnpm) installed on your machine.
 
 1.  **Clone the repo**
     ```sh
-    git clone [https://github.com/InnovatorCodes/expense-tracker.git](https://github.com/InnovatorCodes/expense-tracker.git)
+    git clone https://github.com/InnovatorCodes/expense-tracker.git
     ```
 2.  **Navigate to the project directory**
     ```sh
