@@ -3,7 +3,7 @@
 A feature-rich expense tracker application built with modern web technologies to help you manage your finances effectively. This application allows users to track their expenses and budgets with support for multiple currencies, real-time data updates, and a customizable user interface.
 
 ---
-**Live Demo:** [Check out the live demo here!](spendsense-tracker.vercel.app)
+**Live Demo:** [Check out the live demo here!](https://spendsense-tracker.vercel.app)
 
 ## ✨ Features
 
