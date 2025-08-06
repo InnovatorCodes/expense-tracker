@@ -1,13 +1,25 @@
-'use client'; // This directive is crucial for Next.js 13+ App Router to mark it as a Client Component
+"use client";
 
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
-export function ClearSessionStorage() {
+const ClearRefreshed = () => {
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      sessionStorage.removeItem('refreshed');
+    const refreshed = localStorage.getItem("refreshed");
+    if (!refreshed) {
+      localStorage.setItem("refreshed", "true");
+      window.location.reload();
     }
-  }, []); // Runs once on mount
+  }, []);
 
-  return null; // This component doesn't need to render anything visually
-}
+  return null;
+};
+
+export const ClearSessionStorage = () => {
+  useEffect(() => {
+    localStorage.removeItem("refreshed");
+  }, []);
+
+  return null;
+};
+
+export default ClearRefreshed;

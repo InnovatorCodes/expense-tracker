@@ -25,6 +25,7 @@ const RecentTransactions = () => {
     // If session is still loading or user is not available, handle early exit
     if (status === "loading" || !userId) {
       setLoading(true); // Keep loading state if session is loading
+      setRecentTransactions([]); // Clear transactions when user is not available
       if (status === "unauthenticated" && !userId) {
         setError("Please log in to view recent transactions.");
         setLoading(false); // Stop loading if unauthenticated

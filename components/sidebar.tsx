@@ -14,12 +14,7 @@ import { Button } from "./ui/button";
 import { usePathname } from "next/navigation";
 import { signOut } from "@/actions/signout";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-
 const Sidebar = () => {
-  const router = useRouter();
-  const { update } = useSession();
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -90,15 +85,7 @@ const Sidebar = () => {
               })}
             </ul>
           </nav>
-          <form
-            className="lg:fixed bottom-4 max-sm:mt-4"
-            action={async () => {
-              signOut();
-              await update();
-              router.refresh();
-              router.push("/");
-            }}
-          >
+          <form className="lg:fixed bottom-4 max-sm:mt-4" action={signOut}>
             <Button className="text-xl bg-gray-800 text-white w-[100%] p-6 flex items-center gap-4 justify-start hover:bg-red-800">
               <LogOut style={{ height: "25px", width: "25px" }} />
               Logout

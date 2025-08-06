@@ -81,14 +81,16 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
   const selectedCurrency = form.watch("currency");
 
   useEffect(() => {
-    form.reset({
-      name: transaction?.name,
-      amount: transaction?.amount,
-      date: transaction?.date,
-      category: transaction?.category,
-      type: transaction?.type,
-      notes: transaction?.notes,
-    });
+    if (transaction) {
+      form.reset({
+        name: transaction.name,
+        amount: transaction.amount,
+        date: transaction.date,
+        category: transaction.category,
+        type: transaction.type,
+        notes: transaction.notes,
+      });
+    }
   }, [form, transaction]);
 
   const getCurrencySymbol = (currencyCode: string) => {
@@ -209,6 +211,7 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                         min="0.01"
                         max="10000000000"
                         {...field}
+                        value={field.value ?? ""}
                         onChange={(e) =>
                           field.onChange(parseFloat(e.target.value) || 0)
                         }
@@ -274,8 +277,15 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                   <FormLabel>Date</FormLabel>
                   <FormControl>
                     <Input
+                      placeholder="e.g., Coffee, Salary"
+                      {...field}
+                      value={field.value ?? ""}
+                      className="dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
+                    />
+                    <Input
                       type="date"
                       {...field}
+                      value={field.value ?? ""}
                       className="dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
                     />
                   </FormControl>
@@ -319,6 +329,7 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                     <Textarea
                       placeholder="Any additional details..."
                       {...field}
+                      value={field.value ?? ""}
                       className="dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
                     />
                   </FormControl>

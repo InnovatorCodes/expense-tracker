@@ -58,6 +58,11 @@ const BalanceCard = ({
       setExpenses(0);
       setLoading(false);
     }
+    if (status === "loading" || !userId) {
+      setBalance(0);
+      setIncome(0);
+      setExpenses(0);
+    }
     return () => {
       if (unsubscribeBalance) {
         unsubscribeBalance();

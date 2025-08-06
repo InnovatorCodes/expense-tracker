@@ -72,10 +72,12 @@ const EditBudgetModal: React.FC<CreateBudgetModalProps> = ({
   });
 
   useEffect(() => {
-    form.reset({
-      amount: budget?.amount,
-      category: budget?.category,
-    });
+    if (budget) {
+      form.reset({
+        amount: budget.amount,
+        category: budget.category,
+      });
+    }
   }, [form, budget]);
 
   const onSubmit = async (data: z.infer<typeof budgetFormSchema>) => {
@@ -176,6 +178,7 @@ const EditBudgetModal: React.FC<CreateBudgetModalProps> = ({
                         min="0.01"
                         placeholder="e.g., 500.00"
                         {...field}
+                        value={field.value ?? ""}
                         onChange={(e) =>
                           field.onChange(parseFloat(e.target.value) || 0)
                         }

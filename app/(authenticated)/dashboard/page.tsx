@@ -1,6 +1,6 @@
 // app/dashboard/page.tsx
 "use client";
-import { useState,useEffect } from "react";
+import { useState } from "react";
 // Removed: import { useSession } from 'next-auth/react'; // No longer needed for client-side auth check here
 
 import BalanceCard from "@/components/balance-card";
@@ -16,23 +16,13 @@ import BudgetModal from "@/components/add-budget-modal";
 import { useSession } from "next-auth/react";
 
 import { useExchangeRates } from "@/providers/exchange-rates-provider";
+import { default as ClearRefreshed } from "@/components/clear-refreshed";
 
 const defaultCurrency = "INR";
 
 export default function DashboardPage() {
   const { data: session } = useSession();
   const userId = session?.user?.id;
-
-  useEffect(() => {
-      if (typeof window !== 'undefined') {
-        const reloadFlag = sessionStorage.getItem("refreshed");
-
-        if (reloadFlag != "true") {
-          sessionStorage.setItem("refreshed", "true");
-          window.location.reload();
-        }
-      }
-    }, []); // Runs once on mount
 
   // Consume exchange rates and their loading/error states from the context
   const { exchangeRates, errorExchangeRates } = useExchangeRates();
@@ -66,27 +56,33 @@ export default function DashboardPage() {
 
   return (
     <section className="p-6">
+      <ClearRefreshed />
       <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
       <div className="grid grid-cols-[repeat(auto-fit,minmax(500px,1fr))] gap-6">
         <div className="flex flex-col gap-6">
           {/* Pass defaultCurrency and exchangeRates from context */}
           <BalanceCard
-            key={userId || "unauthenticated"}
+            key={`balance-card-${userId || "unauthenticated"}`}
             currency={defaultCurrency}
             exchangeRates={exchangeRates}
           />
-          <RecentTransactions />
+          <RecentTransactions
+            key={`recent-transactions-${userId || "unauthenticated"}`}
+          />
           <DashboardBudget
+            key={`dashboard-budget-${userId || "unauthenticated"}`}
             currency={defaultCurrency}
             exchangeRates={exchangeRates}
           />
         </div>
         <div className="flex flex-col gap-6">
           <ExpenseChart
+            key={`expense-chart-${userId || "unauthenticated"}`}
             currency={defaultCurrency}
             exchangeRates={exchangeRates}
           />
           <PastWeekChart
+            key={`past-week-chart-${userId || "unauthenticated"}`}
             currency={defaultCurrency}
             exchangeRates={exchangeRates}
           />

@@ -104,6 +104,8 @@ const DashboardBudget: React.FC<{
       }).then((unsub) => {
         unsubscribe = unsub;
       });
+    } else {
+      setBudget(undefined);
     }
 
     return () => {
@@ -127,6 +129,8 @@ const DashboardBudget: React.FC<{
         exchangeRates,
       );
       return () => unsubscribe();
+    } else {
+      setCategoryExpenses({});
     }
   }, [status, userId, exchangeRates]);
 

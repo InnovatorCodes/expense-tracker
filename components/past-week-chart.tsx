@@ -106,6 +106,10 @@ export function PastWeekChart({
       exchangeRates,
     );
 
+    if (!userId) {
+      setChartData([]);
+    }
+
     // Cleanup function: unsubscribe when component unmounts or dependencies change
     return () => {
       unsubscribe();

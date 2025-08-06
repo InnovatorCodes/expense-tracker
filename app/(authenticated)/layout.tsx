@@ -1,6 +1,3 @@
-// app/dashboard/layout.tsx
-// This is a Server Component and acts as a protected route group layout.
-
 import { auth } from "@/auth"; // Import the server-side auth function
 import { redirect } from "next/navigation"; // Server-side redirect function
 import Sidebar from "@/components/sidebar"; // Import your Sidebar component

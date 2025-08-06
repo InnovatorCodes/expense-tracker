@@ -49,8 +49,7 @@ const SignUpPage: React.FC = () => {
       name: "",
       email: "",
       password: "",
-      // passwordConfirmation: "", // Only if your schema explicitly defines this field
-      // Make sure your signUpSchema includes passwordConfirmation if you want to use it
+      passwordConfirmation: "",
     },
   });
 
@@ -104,6 +103,7 @@ const SignUpPage: React.FC = () => {
                         <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
                         <Input
                           {...field}
+                          value={field.value ?? ""}
                           id="name"
                           type="text"
                           placeholder="John Doe"
@@ -133,6 +133,7 @@ const SignUpPage: React.FC = () => {
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
                         <Input
                           {...field}
+                          value={field.value ?? ""}
                           id="email"
                           type="email"
                           placeholder="you@example.com"
@@ -160,6 +161,7 @@ const SignUpPage: React.FC = () => {
                         <LockKeyhole className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
                         <Input
                           {...field}
+                          value={field.value ?? ""}
                           id="password"
                           type="password"
                           placeholder="••••••••"
@@ -190,6 +192,7 @@ const SignUpPage: React.FC = () => {
                         <LockKeyhole className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
                         <Input
                           {...field}
+                          value={field.value ?? ""}
                           id="passwordConfirmation"
                           type="password"
                           placeholder="••••••••"

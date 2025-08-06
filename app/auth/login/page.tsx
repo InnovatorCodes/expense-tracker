@@ -48,13 +48,13 @@ const LoginPage: React.FC = () => {
   // Handles signing in with email and password using the Credentials provider
   const onSubmit = async (data: z.infer<typeof loginSchema>) => {
     setLoading(true);
-    await login(data).then((res) => {
+    await login(data).then(async (res) => {
       if (res.error) {
         setError(res.error);
         setLoading(false);
       } else {
-        setError("");
-        setLoading(false);
+        // Force a cache-busting redirect
+        window.location.href = `/dashboard?t=${new Date().getTime()}`;
       }
     });
   };
@@ -165,7 +165,7 @@ const LoginPage: React.FC = () => {
         </CardContent>
 
         <CardFooter className="text-center text-sm text-gray-600 dark:text-gray-400 justify-center">
-          Don&apos;t have an account?{" "}
+          Don{"'"}t have an account?{" "}
           {/* <Link href="/register" className="text-blue-600 hover:underline">Sign Up</Link> */}
           <Link
             href="/auth/signup"

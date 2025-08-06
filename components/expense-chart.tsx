@@ -139,6 +139,9 @@ export function ExpenseChart({
       return () => {
         unsubscribe();
       };
+    } else {
+      setChartData([]);
+      setChartConfig({});
     }
     // Return the unsubscribe function for cleanup
   }, [userId, status, exchangeRates]);
