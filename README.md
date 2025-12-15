@@ -8,12 +8,13 @@ A feature-rich expense tracker application built with modern web technologies to
 
 ## ✨ Features
 
-- **Authentication**: Secure user authentication implemented with **Auth.js**, supporting both credentials-based login and social login with **Google**.
+- **Authentication**: Secure, **Edge-compatible** authentication implemented with **Auth.js** and Next.js Proxy, supporting credentials and Google login.
 - **Real-time Data**: Transactions are stored in **Firebase Firestore** with real-time subscriptions, ensuring that your data is always up-to-date across all sessions.
 - **Multi-Currency Support**: Add transactions in 6 different currencies. All financial data is aggregated and displayed in a base currency (INR).
 - **Transaction Management**: Users can easily add, edit, and categorize their transactions.
 - **Budgeting**: Create and manage budgets. Pin your most important budget to the dashboard for quick access.
-- **Data Visualization**: Interactive charts and UI components from **shadcn/ui** to visualize your financial data.
+- **Data Visualization**: Interactive, **high-contrast** charts and UI components from **shadcn/ui** to visualize your financial data aesthetically.
+- **Polished UI**: A compact, responsive interface with a fixed sidebar and sleek, gradient-enhanced components for a premium user experience.
 - **Customizable Theme**: Switch between light and dark themes with **next-themes**.
 - **Responsive Design**: The application is fully responsive and works seamlessly on all devices.
 - **TypeScript**: The entire project is built with **TypeScript**, ensuring type safety and improved developer experience.
