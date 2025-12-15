@@ -22,14 +22,14 @@ const Sidebar = () => {
     setIsSidebarOpen(false);
   }, [pathname]);
   const menuItems = [
-    { icon: <Home size={30} />, name: "Dashboard", href: "/dashboard" },
+    { icon: <Home size={22} />, name: "Dashboard", href: "/dashboard" },
     {
-      icon: <DollarSign size={30} />,
+      icon: <DollarSign size={22} />,
       name: "Transactions",
       href: "/transactions",
     },
-    { icon: <Wallet size={30} />, name: "Budgets", href: "/budgets" },
-    { icon: <HelpCircle size={30} />, name: "Help", href: "/help" },
+    { icon: <Wallet size={22} />, name: "Budgets", href: "/budgets" },
+    { icon: <HelpCircle size={22} />, name: "Help", href: "/help" },
   ];
 
   return (
@@ -54,19 +54,19 @@ const Sidebar = () => {
 
       {/* Sidebar for desktop and mobile overlay */}
       <aside
-        className={`z-50 sticky min-h-[100vh] top-0 w-sm bg-white dark:bg-gray-800 p-6 pt-6 flex-col sm:flex max-sm:fixed max-md:h-[100%] ${isSidebarOpen ? "" : "max-sm:-translate-x-full"}`}
+        className={`z-40 fixed top-0 left-0 h-screen w-72 bg-white dark:bg-gray-800 p-6 pt-6 flex-col sm:flex transition-transform duration-300 ease-in-out border-r border-gray-200 dark:border-gray-700 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full sm:translate-x-0"}`}
       >
-        <div className="sticky top-4">
-          <div className="flex items-center gap-2 mb-10">
+        <div className="sticky top-4 flex flex-col h-full">
+          <div className="flex items-center gap-2 mb-8 px-2">
             <div className="bg-indigo-600 p-2 rounded-lg">
-              <DollarSign className="text-white" size={28} />
+              <DollarSign className="text-white" size={26} />
             </div>
-            <h1 className="text-4xl max-sm:text-3xl font-bold text-gray-800 dark:text-white">
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
               SpendSense
             </h1>
           </div>
           <nav className="flex-1">
-            <ul className="flex flex-col  gap-4">
+            <ul className="flex flex-col gap-2">
               {menuItems.map((item, index) => {
                 const isActive =
                   pathname === item.href ||
@@ -75,19 +75,25 @@ const Sidebar = () => {
                   <li key={index}>
                     <Link
                       href={item.href}
-                      className={`flex items-center gap-4 p-3 rounded-lg {"text-gray-600 dark:text-gray-300"} hover:bg-indigo-50 dark:hover:bg-gray-700 transition-colors ${isActive ? "bg-indigo-50 dark:bg-gray-700 text-indigo-600 dark:text-white" : ""}`}
+                      className={`flex items-center gap-3 p-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-700 transition-colors ${isActive ? "bg-indigo-50 dark:bg-gray-700 text-indigo-600 dark:text-white" : ""}`}
                     >
+                      {/* Clone the icon to force a smaller size if passed as element, or just recreate for clarity. 
+                          The item.icon is a ReactNode. We can wrapper it or just change the definition. 
+                          Easier to change the definition in the menuItems array. 
+                          But I can't easily change the array definition AND the render loop in one chunk effectively if they are far apart.
+                          Wait, menuItems IS in this file. I should update menuItems definition too!
+                      */}
                       {item.icon}
-                      <span className="font-medium text-xl">{item.name}</span>
+                      <span className="font-medium text-base">{item.name}</span>
                     </Link>
                   </li>
                 );
               })}
             </ul>
           </nav>
-          <form className="lg:fixed bottom-4 max-sm:mt-4" action={signOut}>
-            <Button className="text-xl bg-gray-800 text-white w-[100%] p-6 flex items-center gap-4 justify-start hover:bg-red-800">
-              <LogOut style={{ height: "25px", width: "25px" }} />
+          <form className="mt-auto mb-4" action={signOut}>
+            <Button className="w-full bg-gray-800 hover:bg-red-700 text-white flex items-center gap-3 justify-start px-4 py-2 text-sm shadow-sm transition-colors duration-200">
+              <LogOut size={18} />
               Logout
             </Button>
           </form>
