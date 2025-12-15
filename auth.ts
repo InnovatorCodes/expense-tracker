@@ -2,11 +2,40 @@ import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "./prisma/prisma";
 import authConfig from "./auth.config";
+import Google from "next-auth/providers/google";
+import Credentials from "next-auth/providers/credentials";
+import { loginSchema } from "./schemas/authentication-schema";
+import bcrypt from "bcryptjs";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   ...authConfig,
+  providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    }),
+    Credentials({
+      async authorize(credentials) {
+        const validatedData = loginSchema.safeParse(credentials);
+        if (!validatedData.success) return null;
+        const { email, password } = validatedData.data;
+        const user = await prisma.user.findFirst({
+          where: {
+            email: email,
+          },
+        });
+        if (!user || !user.password || !user.email) return null;
+        const passwordsMatch = await bcrypt.compare(password, user.password);
+        if (passwordsMatch) {
+          return user;
+        }
+
+        return null;
+      },
+    }),
+  ],
   callbacks: {
     async session({ session, token }) {
       // With 'jwt' strategy, the 'token' object is always available and reliable.
