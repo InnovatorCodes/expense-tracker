@@ -27,29 +27,29 @@ export const TransactionFloatingButton: React.FC<FloatingActionButtonProps> = ({
   return (
     <div className="fixed bottom-8 right-8 z-50 flex flex-col items-end mb-0">
       {showOptions && (
-        <div className="flex flex-col space-y-3 mb-4">
+        <div className="flex flex-col space-y-3 mb-4 animate-in fade-in slide-in-from-bottom-4 duration-200">
           <Button
             onClick={() => handleAddTransactionClick("income")}
-            className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white rounded-full px-5 py-3 shadow-lg transition-all duration-200 ease-in-out"
+            className="flex items-center space-x-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-full px-4 py-2 shadow-lg transition-all duration-200 ease-in-out hover:scale-105"
           >
-            <ArrowUpCircle className="h-5 w-5" />
-            <span>Add Income</span>
+            <ArrowUpCircle className="h-4 w-4" />
+            <span className="text-sm font-medium">Add Income</span>
           </Button>
           <Button
             onClick={() => handleAddTransactionClick("expense")}
-            className="flex items-center space-x-2 bg-red-500 hover:bg-red-600 text-white rounded-full px-5 py-3 shadow-lg transition-all duration-200 ease-in-out"
+            className="flex items-center space-x-2 bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white rounded-full px-4 py-2 shadow-lg transition-all duration-200 ease-in-out hover:scale-105"
           >
-            <ArrowDownCircle className="h-5 w-5" />
-            <span>Add Expense</span>
+            <ArrowDownCircle className="h-4 w-4" />
+            <span className="text-sm font-medium">Add Expense</span>
           </Button>
         </div>
       )}
       <Button
         onClick={toggleOptions}
-        className="h-14 w-14 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl flex items-center justify-center transition-all duration-300 ease-in-out transform hover:scale-110"
+        className={`h-12 w-12 rounded-full text-white shadow-xl flex items-center justify-center transition-all duration-300 ease-in-out transform hover:scale-110 ${showOptions ? "bg-gray-600 rotate-45" : "bg-indigo-600 hover:bg-indigo-700"}`}
         aria-label="Add new transaction"
       >
-        <Plus className="h-8 w-8" />
+        <Plus className="h-6 w-6" />
       </Button>
     </div>
   );
@@ -104,36 +104,36 @@ export const DashboardFloatingButton: React.FC<DashboardActionButtonProps> = ({
   return (
     <div className="fixed bottom-8 right-8 z-50 flex flex-col items-end">
       {showOptions && (
-        <div className="flex flex-col space-y-3 mb-4">
+        <div className="flex flex-col space-y-3 mb-4 animate-in fade-in slide-in-from-bottom-4 duration-200">
           <Button
             onClick={() => handleAddTransactionClick("income")}
-            className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white rounded-full px-5 py-3 shadow-lg transition-all duration-200 ease-in-out"
+            className="flex items-center space-x-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-full px-4 py-2 shadow-lg transition-all duration-200 ease-in-out hover:scale-105"
           >
-            <ArrowUpCircle className="h-5 w-5" />
-            <span>Add Income</span>
+            <ArrowUpCircle className="h-4 w-4" />
+            <span className="text-sm font-medium">Add Income</span>
           </Button>
           <Button
             onClick={() => handleAddTransactionClick("expense")}
-            className="flex items-center space-x-2 bg-red-500 hover:bg-red-600 text-white rounded-full px-5 py-3 shadow-lg transition-all duration-200 ease-in-out"
+            className="flex items-center space-x-2 bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white rounded-full px-4 py-2 shadow-lg transition-all duration-200 ease-in-out hover:scale-105"
           >
-            <ArrowDownCircle className="h-5 w-5" />
-            <span>Add Expense</span>
+            <ArrowDownCircle className="h-4 w-4" />
+            <span className="text-sm font-medium">Add Expense</span>
           </Button>
           <Button
-            onClick={() => handleAddBudgetClick()} // Assuming a new handler for adding budget
-            className="flex items-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full px-5 py-3 shadow-lg transition-all duration-200 ease-in-out"
+            onClick={() => handleAddBudgetClick()}
+            className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-full px-4 py-2 shadow-lg transition-all duration-200 ease-in-out hover:scale-105"
           >
-            <Wallet className="h-5 w-5" /> {/* Using Wallet icon for budget */}
-            <span>Add Budget</span>
+            <Wallet className="h-4 w-4" />
+            <span className="text-sm font-medium">Add Budget</span>
           </Button>
         </div>
       )}
       <Button
         onClick={toggleOptions}
-        className="h-14 w-14 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl flex items-center justify-center transition-all duration-300 ease-in-out transform hover:scale-110"
-        aria-label="Add new transaction"
+        className={`h-12 w-12 rounded-full text-white shadow-xl flex items-center justify-center transition-all duration-300 ease-in-out transform hover:scale-110 ${showOptions ? "bg-gray-600 rotate-45" : "bg-indigo-600 hover:bg-indigo-700"}`}
+        aria-label="Toggle options"
       >
-        <Plus className="h-8 w-8" />
+        <Plus className="h-6 w-6" />
       </Button>
     </div>
   );
