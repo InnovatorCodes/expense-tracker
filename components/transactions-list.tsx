@@ -158,37 +158,37 @@ const TransactionList = ({
 
   return (
     <>
-      <Card className="w-full dark:bg-gray-800 shadow-lg rounded-lg min-w-max">
-        <CardHeader className="flex">
-          <div className="flex flex-col mr-auto">
-            <CardTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">
-              Monthly Transactions
+      <Card className="w-full dark:bg-gray-800 shadow-lg rounded-lg border-none">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-2 space-y-4 sm:space-y-0">
+          <div>
+            <CardTitle className="text-lg font-bold text-gray-900 dark:text-gray-100">
+              Transactions
             </CardTitle>
-            <CardDescription className="text-gray-600 dark:text-gray-300">
-              A detailed list of your income and expenses.
+            <CardDescription className="text-sm text-gray-500 dark:text-gray-400">
+              Income and expenses for the selected month.
             </CardDescription>
           </div>
-          <div className="flex items-center justify-between mt-4 gap-2">
+          <div className="flex items-center space-x-1 bg-gray-100 dark:bg-gray-700/50 rounded-lg p-1 self-end sm:self-auto">
             <Button
-              variant="outline"
+              variant="ghost"
+              size="icon"
               onClick={handlePreviousMonth}
-              className=" px-0 dark:text-gray-300 dark:border-gray-700 dark:hover:bg-gray-700 w-min"
+              className="h-8 w-8 hover:bg-white dark:hover:bg-gray-600 rounded-md"
               aria-label="Previous Month"
             >
-              <ChevronLeft className="h-4 w-4 mr-2" /> Previous
+              <ChevronLeft className="h-4 w-4" />
             </Button>
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+            <span className="text-sm font-semibold text-gray-700 dark:text-gray-200 min-w-[100px] text-center select-none">
               {getMonthName(currentMonth) + " " + currentMonth.getFullYear()}
-            </h3>
+            </span>
             <Button
-              variant="outline"
-              size="sm"
+              variant="ghost"
+              size="icon"
               onClick={handleNextMonth}
-              className="dark:text-gray-300 dark:border-gray-700 dark:hover:bg-gray-700"
+              className="h-8 w-8 hover:bg-white dark:hover:bg-gray-600 rounded-md"
               aria-label="Next Month"
             >
-              Next
-              <ChevronRight className="h-4 w-4 ml-2" />
+              <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         </CardHeader>
@@ -209,69 +209,60 @@ const TransactionList = ({
                 return (
                   <li
                     key={transaction.id}
-                    className={`flex items-center justify-between p-4 rounded-lg shadow-sm border
-                    ${
-                      transaction.type === "income"
-                        ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
-                        : "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
-                    }
-                    transition-all duration-200 ease-in-out hover:shadow-md`}
+                    className={`flex items-center justify-between p-3 rounded-lg shadow-sm border
+                    ${transaction.type === "income"
+                        ? "bg-green-50/50 dark:bg-green-900/10 border-green-100 dark:border-green-800/50"
+                        : "bg-red-50/50 dark:bg-red-900/10 border-red-100 dark:border-red-800/50"
+                      }
+                    transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.01]`}
                   >
-                    <div className="flex items-center space-x-4">
-                      <Icon />
+                    <div className="flex items-center space-x-3">
+                      <div className={`p-2 rounded-full ${transaction.type === 'income' ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'}`}>
+                        <Icon size={18} className={transaction.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'} />
+                      </div>
                       <div className="flex flex-col">
-                        <p className="font-semibold text-gray-900 dark:text-gray-50 text-lg">
+                        <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
                           {transaction.name}
                         </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                           {transaction.category} •{" "}
                           {new Date(transaction.date).toLocaleDateString()}
                         </p>
                         {transaction.notes && (
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">
+                          <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5 line-clamp-1">
                             {transaction.notes}
                           </p>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2">
                       <span
-                        className={`text-sm font-semibold p-2 rounded-sm
-                      ${
-                        transaction.type === "income"
-                          ? "bg-green-100 text-green-700 dark:bg-green-800 dark:text-green-200"
-                          : "bg-red-100 text-red-700 dark:bg-red-800 dark:text-red-200"
-                      }
-                    `}
+                        className={`text-base font-bold whitespace-nowrap
+                        ${transaction.type === "income" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}
+                      `}
                       >
-                        {transaction.type === "income" ? "Income" : "Expense"}
+                        {transaction.type === 'expense' ? '-' : '+'}{getCurrencySymbol(transaction.currency)}{transaction.amount.toFixed(2)}
                       </span>
-                      <span
-                        className={`text-xl font-bold
-                      ${transaction.type === "income" ? "text-green-700 dark:text-green-300" : "text-red-700 dark:text-red-300"}
-                    `}
-                      >
-                        {getCurrencySymbol(transaction.currency) +
-                          transaction.amount.toFixed(2)}
-                      </span>
-                      <Button
-                        variant="ghost" // Use a ghost variant for a subtle button
-                        size="sm" // Small size
-                        onClick={() => handleEditTransaction(transaction.id)} // Placeholder for future edit logic
-                        className="flex items-center justify-center text-gray-500 dark:text-gray-300 hover:text-blue-700  dark:hover:text-blue-600"
-                        aria-label={`Edit ${transaction.name}`}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteTransaction(transaction.id)}
-                        className="text-gray-500 dark:text-gray-300 hover:text-red-600  dark:hover:text-red-600"
-                        aria-label={`Delete ${transaction.name}`}
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </Button>
+                      <div className="flex space-x-0">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEditTransaction(transaction.id)}
+                          className="h-8 w-8 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
+                          aria-label={`Edit ${transaction.name}`}
+                        >
+                          <Edit className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteTransaction(transaction.id)}
+                          className="h-8 w-8 text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                          aria-label={`Delete ${transaction.name}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </li>
                 );
