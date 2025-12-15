@@ -30,17 +30,18 @@ interface CategoryExpenseData {
 }
 
 // Function to generate consistent colors for categories
+// Aesthetic high-contrast color palette
 const COLORS = [
-  "var(--chart-1)",
-  "var(--chart-2)",
-  "var(--chart-3)",
-  "var(--chart-4)",
-  "var(--chart-5)",
-  "var(--chart-6)",
-  "var(--chart-7)",
-  "var(--chart-8)",
-  "var(--chart-9)",
-  "var(--chart-10)",
+  "#10B981", // Emerald 500 (Green)
+  "#F43F5E", // Rose 500 (Red/Pink)
+  "#3B82F6", // Blue 500
+  "#F59E0B", // Amber 500 (Orange/Yellow)
+  "#8B5CF6", // Violet 500 (Purple)
+  "#06B6D4", // Cyan 500
+  "#D946EF", // Fuchsia 500
+  "#84CC16", // Lime 500
+  "#E11D48", // Rose 600
+  "#14B8A6", // Teal 500
 ];
 
 export function ExpenseChart({
@@ -214,6 +215,8 @@ export function ExpenseChart({
                 }
                 nameKey="name"
                 outerRadius={"80%"}
+                stroke="hsl(var(--card))"
+                strokeWidth={2}
               />
               <ChartLegend content={<ChartLegendContent nameKey="name" />} />
             </PieChart>
