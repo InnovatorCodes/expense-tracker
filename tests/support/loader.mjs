@@ -9,7 +9,12 @@ const FAKED = new Set([
 ]);
 
 export async function resolve(specifier, context, next) {
-  if (FAKED.has(specifier)) return { url: FAKE, shortCircuit: true };
+  // The real Admin SDK wrapper is tested on its own, so it gets the real SDK.
+  const parent = (context.parentURL ?? "").split("?")[0];
+  const fromAdminWrapper = parent.endsWith("lib/server/firebase-admin.ts");
+  if (FAKED.has(specifier) && !fromAdminWrapper) {
+    return { url: FAKE, shortCircuit: true };
+  }
   if (specifier.startsWith("@/")) {
     for (const ext of [".ts", ".tsx"]) {
       const url = new URL(specifier.slice(2) + ext, ROOT);

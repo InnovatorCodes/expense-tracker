@@ -44,3 +44,7 @@ next-env.d.ts
 
 # allow the env template
 !.env.example
+
+# Firebase service account keys (never commit these)
+*-firebase-adminsdk-*.json
+service-account*.json

@@ -79,18 +79,18 @@ Node.js 20 or newer and npm.
 
     DATABASE_URL=""           # MongoDB connection string used by Prisma
 
-    FIREBASE_PROJECT_ID=""    # From a Firebase service account key
-    FIREBASE_CLIENT_EMAIL=""
-    FIREBASE_PRIVATE_KEY=""   # One line, with \n escapes, in double quotes
+    FIREBASE_SERVICE_ACCOUNT_KEY="" # Service account key JSON, raw or base64
 
     EXCHANGE_RATES_API_KEY="" # Server-only; never exposed to the browser
     ```
 
-    The `NEXT_PUBLIC_FIREBASE_*` variables are no longer used and can be deleted.
+    `.env.example` also documents two alternatives for Firebase credentials: three separate `FIREBASE_*` variables, or `GOOGLE_APPLICATION_CREDENTIALS` pointing at the key file. The `NEXT_PUBLIC_FIREBASE_*` variables are no longer used and can be deleted.
 
 3.  **Set up Firestore**
 
-    Create a service account key in the Firebase console under **Project settings → Service accounts**. Then deploy the security rules and index from this repo with the [Firebase CLI](https://firebase.google.com/docs/cli):
+    The server authenticates with a **service account** through the Firebase Admin SDK. It does not use the deprecated "Database secrets". In the Firebase console, open **Project settings → Service accounts → Firebase Admin SDK** and click **Generate new private key**. Put the downloaded JSON into `FIREBASE_SERVICE_ACCOUNT_KEY`, and keep the file out of the repo.
+
+    Then deploy the security rules and index from this repo with the [Firebase CLI](https://firebase.google.com/docs/cli):
 
     ```sh
     npx firebase-tools deploy --only firestore --project YOUR_PROJECT_ID
