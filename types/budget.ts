@@ -1,6 +1,14 @@
 export interface Budget {
-  id: string; // Firestore document ID
-  category: string; // The category this budget applies to (e.g., 'Food', 'Transport')
+  id: string;
+  /** An expense category, or "All" for total monthly spending. */
+  category: string;
+  /** Monthly limit in BASE_CURRENCY. */
   amount: number;
-  createdAt: Date; // Timestamp of when the budget was created
+  /** ISO timestamp. */
+  createdAt: string;
+}
+
+/** A budget together with how much has been spent against it this month. */
+export interface BudgetWithUsage extends Budget {
+  spent: number;
 }

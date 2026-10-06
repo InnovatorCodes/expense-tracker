@@ -1,45 +1,34 @@
 "use server";
 
-import * as z from "zod/v4";
-import { loginSchema } from "@/schemas/authentication-schema";
-import { prisma } from "@/prisma/prisma";
-import { signIn } from "@/auth";
 import { AuthError } from "next-auth";
+import { signIn } from "@/auth";
+import { loginSchema } from "@/schemas/authentication-schema";
+import { safeCallbackUrl } from "@/lib/auth-redirect";
 
-export const login = async (data: z.infer<typeof loginSchema>) => {
-  const validatedData = loginSchema.parse(data);
-  if (!validatedData) {
-    return { error: "Invalid Credentials Provided" };
-  }
-  const { email, password } = validatedData;
-  const userExists = await prisma.user.findFirst({
-    where: {
-      email: email,
-    },
-  });
+const INVALID =
+  "Invalid email or password. If you signed up with Google, use 'Sign in with Google'.";
 
-  if (!userExists) return { error: "User Not Found" };
-  else if (!userExists.password || !userExists.email)
-    return {
-      error:
-        "Looks like you signed up with Google. Please login with Google instead.",
-    };
+export async function login(
+  input: unknown,
+  callbackUrl?: string,
+): Promise<{ error: string } | undefined> {
+  const parsed = loginSchema.safeParse(input);
+  if (!parsed.success) return { error: INVALID };
 
   try {
+    // On success this throws a redirect, which Next.js turns into navigation.
     await signIn("credentials", {
-      email: userExists.email,
-      password: password,
+      ...parsed.data,
+      redirectTo: safeCallbackUrl(callbackUrl),
     });
   } catch (error) {
     if (error instanceof AuthError) {
-      switch (error.type) {
-        case "CredentialsSignin":
-          return { error: "Invalid Credentials" };
-        default:
-          return { error: "Confirm your Email Address" };
-      }
+      // Same message for unknown email and wrong password, so the form
+      // can't be used to discover which emails have accounts.
+      return error.type === "CredentialsSignin"
+        ? { error: INVALID }
+        : { error: "Sign-in failed. Please try again." };
     }
     throw error;
   }
-  return { success: "User logged in successfully!" };
-};
+}

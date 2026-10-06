@@ -1,24 +1,36 @@
 "use client";
 
-import { googleAuthenticate } from "@/actions/google-signin";
 import { useActionState } from "react";
 import { FcGoogle } from "react-icons/fc";
+import { Loader2 } from "lucide-react";
+import { googleAuthenticate } from "@/actions/google-signin";
+import { FormError } from "@/components/form-error";
 import { Button } from "./ui/button";
 
-export const GoogleLogin = () => {
-  const [errorMsgGoogle, dispatchGoogle] = useActionState(
+export const GoogleLogin = ({ callbackUrl }: { callbackUrl?: string }) => {
+  const [error, dispatch, isPending] = useActionState(
     googleAuthenticate,
     undefined,
   );
   return (
-    <form action={dispatchGoogle}>
+    <form action={dispatch} className="space-y-3">
+      {callbackUrl && (
+        <input type="hidden" name="callbackUrl" value={callbackUrl} />
+      )}
       <Button
+        type="submit"
         variant="outline"
-        className="w-full flex items-center justify-center space-x-2 hover:cursor-pointer border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+        disabled={isPending}
+        className="w-full flex items-center justify-center gap-2 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
       >
-        <FcGoogle /> Sign In with Google
+        {isPending ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <FcGoogle />
+        )}
+        Sign in with Google
       </Button>
-      <p>{errorMsgGoogle}</p>
+      <FormError message={error} />
     </form>
   );
 };

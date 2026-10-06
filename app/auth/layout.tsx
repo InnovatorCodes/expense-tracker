@@ -1,14 +1,13 @@
 import Link from "next/link";
 import { DollarSign } from "lucide-react";
 
-export default function AuthenticatedLayout({
+export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
     <>
-      <link rel="icon" href="/favicon.ico" sizes="any" />
       <Link
         href="/"
         className="absolute top-0 left-0 ml-4 mt-4 flex items-center justify-center mr-auto"

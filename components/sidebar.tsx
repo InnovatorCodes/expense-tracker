@@ -1,6 +1,5 @@
-// app/dashboard/components/Sidebar.tsx
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Home,
   DollarSign,
@@ -18,9 +17,6 @@ const Sidebar = () => {
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  useEffect(() => {
-    setIsSidebarOpen(false);
-  }, [pathname]);
   const menuItems = [
     { icon: <Home size={22} />, name: "Dashboard", href: "/dashboard" },
     {
@@ -42,6 +38,8 @@ const Sidebar = () => {
           variant="ghost"
           size="icon"
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          aria-label={isSidebarOpen ? "Close menu" : "Open menu"}
+          aria-expanded={isSidebarOpen}
           className="bg-white dark:bg-gray-800 p-2 rounded-lg shadow-md"
         >
           {isSidebarOpen ? (
@@ -67,22 +65,18 @@ const Sidebar = () => {
           </div>
           <nav className="flex-1">
             <ul className="flex flex-col gap-2">
-              {menuItems.map((item, index) => {
+              {menuItems.map((item) => {
                 const isActive =
                   pathname === item.href ||
-                  (pathname.startsWith(item.href) && item.href !== "/");
+                  pathname.startsWith(`${item.href}/`);
                 return (
-                  <li key={index}>
+                  <li key={item.href}>
                     <Link
                       href={item.href}
+                      aria-current={isActive ? "page" : undefined}
+                      onClick={() => setIsSidebarOpen(false)}
                       className={`flex items-center gap-3 p-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-700 transition-colors ${isActive ? "bg-indigo-50 dark:bg-gray-700 text-indigo-600 dark:text-white" : ""}`}
                     >
-                      {/* Clone the icon to force a smaller size if passed as element, or just recreate for clarity. 
-                          The item.icon is a ReactNode. We can wrapper it or just change the definition. 
-                          Easier to change the definition in the menuItems array. 
-                          But I can't easily change the array definition AND the render loop in one chunk effectively if they are far apart.
-                          Wait, menuItems IS in this file. I should update menuItems definition too!
-                      */}
                       {item.icon}
                       <span className="font-medium text-base">{item.name}</span>
                     </Link>
@@ -92,7 +86,10 @@ const Sidebar = () => {
             </ul>
           </nav>
           <form className="mt-auto mb-4" action={signOut}>
-            <Button className="w-full bg-gray-800 hover:bg-red-700 text-white flex items-center gap-3 justify-start px-4 py-2 text-sm shadow-sm transition-colors duration-200">
+            <Button
+              type="submit"
+              className="w-full bg-gray-800 hover:bg-red-700 text-white flex items-center gap-3 justify-start px-4 py-2 text-sm shadow-sm transition-colors duration-200"
+            >
               <LogOut size={18} />
               Logout
             </Button>

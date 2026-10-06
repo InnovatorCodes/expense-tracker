@@ -1,4 +1,3 @@
-// components/HelpPage.tsx
 "use client";
 import React, { useState } from "react";
 
@@ -109,14 +108,12 @@ const faqData = [
         </p>
         <ul className="list-disc space-y-2 pl-5">
           <li>
-            <strong>To Edit:</strong> Tap on the transaction you wish to modify,
-            click the {"'"}Edit{"'"} icon ( pencil), make your changes, and
-            save.
+            <strong>To Edit:</strong> Click the {"'"}Edit{"'"} icon (a pencil)
+            next to the transaction, make your changes, and save.
           </li>
           <li>
-            <strong>To Delete:</strong> Swipe the transaction entry to reveal a{" "}
-            {"'"}Delete{"'"} option, or tap the transaction and find the {"'"}
-            Delete{"'"} icon (a trash can). Confirm to delete.
+            <strong>To Delete:</strong> Click the {"'"}Delete{"'"} icon (a trash
+            can) next to the transaction, then confirm.
           </li>
         </ul>
       </>
@@ -169,6 +166,8 @@ const faqData = [
           </li>
           <li>
             The budget will now appear on your Dashboard for easy monitoring.
+            Pinning a different budget replaces it, and clicking the pin again
+            unpins it.
           </li>
         </ol>
       </>
@@ -188,10 +187,12 @@ const faqData = [
     question: "Are currency conversions exact?",
     answer: (
       <p>
-        Conversions between different currencies are based on the latest
-        available exchange rates and are for approximate guidance only. Due to
-        constant fluctuations in currency markets, these converted values may
-        differ slightly from real-time or exact transaction values.
+        Each transaction keeps the amount and currency you entered. It is also
+        converted to Indian Rupees at the exchange rate on the day you recorded
+        it, and that rate is saved with the transaction. Your balance, totals
+        and budgets use these saved values, so past figures don{"'"}t change
+        when exchange rates move later. Rates come from a public exchange-rate
+        service and are approximate.
       </p>
     ),
   },

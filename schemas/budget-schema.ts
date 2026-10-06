@@ -1,11 +1,12 @@
-// lib/validation/budgetSchema.ts
-import { z } from "zod";
-// Define the recurrence types for budgets
+import * as z from "zod/v4";
+import { budgetCategories } from "@/lib/categories";
 
 export const budgetFormSchema = z.object({
-  category: z
-    .string()
-    .min(1, "Category is required")
-    .max(50, "Category must not exceed 50 characters"),
-  amount: z.number().min(0.01, "Amount must be a positive number"),
+  category: z.enum(budgetCategories, { message: "Category is required" }),
+  amount: z
+    .number({ message: "Enter an amount" })
+    .positive("Amount must be greater than 0")
+    .max(10_000_000_000, "Amount is too large"),
 });
+
+export type BudgetInput = z.infer<typeof budgetFormSchema>;

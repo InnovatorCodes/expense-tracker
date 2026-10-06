@@ -2,6 +2,7 @@ import {
   Utensils,
   Car,
   ShoppingBag,
+  ShoppingCart,
   Home,
   Wallet,
   GraduationCap,
@@ -16,7 +17,8 @@ import {
   Gift,
   RefreshCw,
   Handshake,
-  LayoutGrid, // For the Select trigger chevron
+  LayoutGrid,
+  type LucideIcon,
 } from "lucide-react";
 
 export const expenseCategories = [
@@ -32,23 +34,7 @@ export const expenseCategories = [
   "Groceries",
   "Travel",
   "Other Expense",
-];
-
-export const budgetCategories = [
-  "All",
-  "Food",
-  "Transport",
-  "Shopping",
-  "Utilities",
-  "Rent",
-  "Health",
-  "Education",
-  "Entertainment",
-  "Bills",
-  "Groceries",
-  "Travel",
-  "Other Expense",
-];
+] as const;
 
 export const incomeCategories = [
   "Salary",
@@ -57,29 +43,36 @@ export const incomeCategories = [
   "Gift",
   "Refund",
   "Other Income",
-];
+] as const;
 
-export const categoryIcons: { [key: string]: React.ElementType } = {
-  // Expense Icons
-  All: LayoutGrid,
+/** Budget that tracks total spending across every expense category. */
+export const ALL_CATEGORIES = "All";
+
+export const budgetCategories = [ALL_CATEGORIES, ...expenseCategories] as const;
+
+const categoryIcons: Record<string, LucideIcon> = {
+  [ALL_CATEGORIES]: LayoutGrid,
   Food: Utensils,
   Transport: Car,
   Shopping: ShoppingBag,
-  Utilities: Lightbulb, // Or specific utility icon if available
+  Utilities: Lightbulb,
   Rent: Home,
   Health: Hospital,
   Education: GraduationCap,
   Entertainment: Sparkles,
   Bills: Receipt,
-  Groceries: ShoppingBag, // Reusing shopping bag, or a cart icon
+  Groceries: ShoppingCart,
   Travel: Plane,
-  "Other Expense": Wallet, // Generic wallet for other expenses
-
-  // Income Icons
+  "Other Expense": Wallet,
   Salary: Banknote,
   Freelance: Briefcase,
   Investments: PiggyBank,
   Gift: Gift,
-  Refund: RefreshCw, // Icon for refund/return
-  "Other Income": Handshake, // Generic for other income
+  Refund: RefreshCw,
+  "Other Income": Handshake,
 };
+
+/** Icon for a category, with a safe fallback for unknown or legacy values. */
+export function getCategoryIcon(category: string): LucideIcon {
+  return categoryIcons[category] ?? Wallet;
+}

@@ -1,77 +1,149 @@
-// app/actions/transaction.ts
-// This file defines a server action for adding a new transaction (expense or income).
-
 "use server";
 
-import * as z from "zod/v4";
-import { auth } from "@/auth"; // Import the server-side auth function
-import { addBudget } from "@/utils/firebase"; // Import Firestore utility
+import { revalidatePath } from "next/cache";
+import { FieldValue } from "firebase-admin/firestore";
+import { getUserId } from "@/lib/server/session";
+import { budgetsCol, getDb, userDoc } from "@/lib/server/firebase-admin";
+import { roundMoney } from "@/lib/money";
 import { budgetFormSchema } from "@/schemas/budget-schema";
-import { updateBudget } from "@/utils/firebase";
+import { docIdSchema } from "@/schemas/id-schema";
+import type { ActionResult } from "@/types/action";
 
-/**
- * Server Action to add a new transaction (expense or income) to Firestore.
- * This function runs on the server.
- *
- * @param prevState The previous state from useFormState (ignored in this simplified direct call).
- * @param formData The FormData object submitted from the client form.
- * @returns An object indicating success or error.
- */
-export async function createBudget(formData: z.infer<typeof budgetFormSchema>) {
-  const session = await auth(); // Get the authenticated user's session on the server
+class UserFacingError extends Error {}
 
-  if (!session?.user?.id) {
-    return { error: "You must be logged in to add a budget." };
-  }
-
-  try {
-    // Server-side validation using Zod
-    const validatedData = budgetFormSchema.parse(formData);
-    if (!validatedData) {
-      return { error: "Invalid budget data provided." };
-    }
-
-    await addBudget(session.user.id, validatedData);
-
-    return { success: "Budget added successfully!" };
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      console.error("Server-side validation error");
-      return { error: "Validation failed. Please check your input." };
-    }
-    console.error("Error creating budget:", error);
-    return {
-      error:
-        error instanceof Error ? error.message : "An unknown error occurred.",
-    };
-  }
+function revalidateAll() {
+  revalidatePath("/", "layout");
 }
 
-export async function modifyBudget(
-  updatedData: z.infer<typeof budgetFormSchema>,
-  budgetId: string,
-) {
-  const session = await auth(); // Get the authenticated user's session on the server
+function failure(e: unknown, fallback: string): ActionResult {
+  if (e instanceof UserFacingError) return { error: e.message };
+  console.error(fallback, e);
+  return { error: fallback };
+}
 
-  if (!session?.user?.id) {
-    return { error: "You must be logged in to update a transaction." };
+export async function createBudget(input: unknown): Promise<ActionResult> {
+  const userId = await getUserId();
+  if (!userId) return { error: "You must be logged in to add a budget." };
+
+  const parsed = budgetFormSchema.safeParse(input);
+  if (!parsed.success) {
+    return { error: "Validation failed. Please check your input." };
   }
+  const { category, amount } = parsed.data;
+  const col = budgetsCol(userId);
 
   try {
-    // Server-side validation using Zod
-    const validatedData = budgetFormSchema.parse(updatedData);
-    if (!validatedData) {
-      return { error: "Invalid budget data provided." };
-    }
-    // Add the transaction to Firestore
-    await updateBudget(session.user.id, budgetId, validatedData);
-    return { success: "Budget updated successfully!" };
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      console.error("Server-side validation error");
-      return { error: "Validation failed. Please check your input." };
-    }
-    console.error("Error updating transaction:", error);
-    return { error: "Failed to update transaction. Please try again." };
+    // Check and insert atomically so two quick submits can't create duplicates.
+    await getDb().runTransaction(async (tx) => {
+      const existing = await tx.get(
+        col.where("category", "==", category).limit(1),
+      );
+      if (!existing.empty) {
+        throw new UserFacingError(`A budget for '${category}' already exists.`);
+      }
+      tx.create(col.doc(), {
+        category,
+        amount: roundMoney(amount),
+        createdAt: FieldValue.serverTimestamp(),
+      });
+    });
+  } catch (e) {
+    return failure(e, "Failed to create the budget. Please try again.");
   }
+
+  revalidateAll();
+  return { success: "Budget added." };
+}
+
+export async function updateBudget(
+  id: unknown,
+  input: unknown,
+): Promise<ActionResult> {
+  const userId = await getUserId();
+  if (!userId) return { error: "You must be logged in to update a budget." };
+
+  const parsedId = docIdSchema.safeParse(id);
+  const parsed = budgetFormSchema.safeParse(input);
+  if (!parsedId.success || !parsed.success) {
+    return { error: "Validation failed. Please check your input." };
+  }
+  const { category, amount } = parsed.data;
+  const col = budgetsCol(userId);
+  const ref = col.doc(parsedId.data);
+
+  try {
+    await getDb().runTransaction(async (tx) => {
+      const [snap, clash] = await Promise.all([
+        tx.get(ref),
+        tx.get(col.where("category", "==", category).limit(2)),
+      ]);
+      if (!snap.exists)
+        throw new UserFacingError("That budget no longer exists.");
+      if (clash.docs.some((d) => d.id !== ref.id)) {
+        throw new UserFacingError(`A budget for '${category}' already exists.`);
+      }
+      tx.update(ref, { category, amount: roundMoney(amount) });
+    });
+  } catch (e) {
+    return failure(e, "Failed to update the budget. Please try again.");
+  }
+
+  revalidateAll();
+  return { success: "Budget updated." };
+}
+
+export async function deleteBudget(id: unknown): Promise<ActionResult> {
+  const userId = await getUserId();
+  if (!userId) return { error: "You must be logged in to delete a budget." };
+  const parsedId = docIdSchema.safeParse(id);
+  if (!parsedId.success) return { error: "Invalid budget." };
+
+  try {
+    await getDb().runTransaction(async (tx) => {
+      const user = await tx.get(userDoc(userId));
+      tx.delete(budgetsCol(userId).doc(parsedId.data));
+      // Don't leave the dashboard pointing at a budget that no longer exists.
+      if (user.get("pinnedBudget") === parsedId.data) {
+        tx.set(userDoc(userId), { pinnedBudget: null }, { merge: true });
+      }
+    });
+  } catch (e) {
+    return failure(e, "Failed to delete the budget. Please try again.");
+  }
+
+  revalidateAll();
+  return { success: "Budget deleted." };
+}
+
+/** Pins a budget to the dashboard, or unpins it if it is already pinned. */
+export async function togglePinnedBudget(id: unknown): Promise<ActionResult> {
+  const userId = await getUserId();
+  if (!userId) return { error: "You must be logged in to pin a budget." };
+  const parsedId = docIdSchema.safeParse(id);
+  if (!parsedId.success) return { error: "Invalid budget." };
+
+  let pinned = false;
+  try {
+    await getDb().runTransaction(async (tx) => {
+      const [user, budget] = await Promise.all([
+        tx.get(userDoc(userId)),
+        tx.get(budgetsCol(userId).doc(parsedId.data)),
+      ]);
+      if (!budget.exists)
+        throw new UserFacingError("That budget no longer exists.");
+      pinned = user.get("pinnedBudget") !== parsedId.data;
+      tx.set(
+        userDoc(userId),
+        { pinnedBudget: pinned ? parsedId.data : null },
+        { merge: true },
+      );
+    });
+  } catch (e) {
+    return failure(e, "Failed to update the pinned budget. Please try again.");
+  }
+
+  revalidateAll();
+  return {
+    success: pinned ? "Budget pinned to dashboard." : "Budget unpinned.",
+  };
 }

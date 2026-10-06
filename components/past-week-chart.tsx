@@ -1,11 +1,7 @@
-// app/dashboard/components/IncomeExpenseBarChart.tsx
-"use client"; // This component needs to be a Client Component
+"use client";
 
-import React, { useState, useEffect } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
-import { useSession } from "next-auth/react"; // To get the user session
-import { subscribeToPastWeekTransactions } from "@/utils/firebase"; // Import new function
-import { Loader2, Info } from "lucide-react"; // For loading and info icons
+import { Info } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -14,144 +10,52 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  ChartConfig,
+  type ChartConfig,
   ChartContainer,
   ChartTooltipContent,
   ChartLegend,
   ChartLegendContent,
   ChartTooltip,
 } from "@/components/ui/chart";
-import { currencySymbols } from "@/utils/currencies";
+import { formatShortDate } from "@/lib/dates";
+import { currencySymbol, formatMoney } from "@/lib/money";
 
-// Define the interface for the data structure (same as in firestore.ts)
-interface DailyFinancialData {
-  date: string; // MM-DD format for chart display, YYYY-MM-DD internally
+export interface DailyTotals {
+  /** "YYYY-MM-DD" */
+  date: string;
   income: number;
   expense: number;
 }
 
 const chartConfig = {
-  income: {
-    label: "Income",
-    color: "var(--destructive)", // Use HSL for Tailwind compatibility
-  },
-  expense: {
-    label: "Expense",
-    color: "var(--destructive)", // Use HSL for Tailwind compatibility
-  },
+  income: { label: "Income", color: "var(--constructive)" },
+  expense: { label: "Expense", color: "var(--destructive)" },
 } satisfies ChartConfig;
 
-export function PastWeekChart({
-  currency,
-  exchangeRates,
-}: {
-  currency: string;
-  exchangeRates: Record<string, number>;
-}) {
-  // Renamed from IncomeExpenseBarChart to PastWeekChart as per your query
-  const { data: session, status } = useSession();
-  const userId = session?.user?.id;
+const compact = new Intl.NumberFormat("en-US", {
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
 
-  const [chartData, setChartData] = useState<DailyFinancialData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [dateRangeLabel, setDateRangeLabel] = useState(""); // For displaying date range
-
-  const getCurrencySymbol = (currencyCode: string) => {
-    if (currencySymbols[currencyCode as keyof typeof currencySymbols]) {
-      return currencySymbols[currencyCode as keyof typeof currencySymbols];
-    } else return currencyCode;
-  };
-
-  useEffect(() => {
-    // If session is still loading or user is not available, handle early exit
-    if (status === "loading" || !userId) {
-      setLoading(true); // Keep loading state if session is loading
-      if (status === "unauthenticated" && !userId) {
-        setError("Please log in to view financial overview.");
-        setLoading(false); // Stop loading if unauthenticated
-      } else {
-        setError(""); // Clear previous error if userId becomes null while loading
-      }
-      return;
-    }
-
-    setError(""); // Clear any previous errors if we're proceeding with a user
-    setLoading(true); // Set loading true while waiting for the first snapshot
-
-    // Subscribe to daily income/expenses for the last 7 days
-    const unsubscribe = subscribeToPastWeekTransactions(
-      userId,
-      7,
-      (data) => {
-        setChartData(data);
-
-        // Determine date range label based on the fetched data
-        if (data.length > 0) {
-          const firstDate = new Date(data[0].date); // Use fullDate from the data
-          const lastDate = new Date(data[data.length - 1].date); // Use fullDate from the data
-
-          const dateFormatter = new Intl.DateTimeFormat("en-US", {
-            month: "short",
-            day: "numeric",
-          });
-          setDateRangeLabel(
-            `${dateFormatter.format(firstDate)} - ${dateFormatter.format(lastDate)}`,
-          );
-        } else {
-          setDateRangeLabel("");
-        }
-        setLoading(false); // Data received, stop loading
-      },
-      exchangeRates,
-    );
-
-    if (!userId) {
-      setChartData([]);
-    }
-
-    // Cleanup function: unsubscribe when component unmounts or dependencies change
-    return () => {
-      unsubscribe();
-    };
-  }, [userId, status, exchangeRates]); // Re-run effect if userId or auth status changes
-
-  if (loading) {
-    return (
-      <Card className="dark:bg-gray-800 h-full flex items-center justify-center">
-        <CardContent className="p-6 text-center text-gray-500 dark:text-gray-400">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3" />
-          <p>Loading past week data...</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (error) {
-    return (
-      <Card className="dark:bg-gray-800 h-full flex items-center justify-center">
-        <CardContent className="text-center p-4 bg-red-100 rounded-lg text-red-700 dark:bg-red-900/20 dark:text-red-300">
-          <p className="font-semibold">{error}</p>
-        </CardContent>
-      </Card>
-    );
-  }
+export function PastWeekChart({ data }: { data: DailyTotals[] }) {
+  const hasData = data.some((d) => d.income > 0 || d.expense > 0);
+  const range =
+    data.length > 0
+      ? `${formatShortDate(data[0].date)} – ${formatShortDate(data[data.length - 1].date)}`
+      : "";
+  const symbol = currencySymbol("INR");
 
   return (
-    <Card className="w-full bg-white dark:bg-gray-800 shadow-xl rounded-lg h-full flex flex-col">
+    <Card className="w-full shadow-xl rounded-lg flex flex-col">
       <CardHeader className="pb-0">
-        <div className="flex justify-between w-full items-center">
-          <CardTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">
-            Last 7 Days Overview
-          </CardTitle>
-        </div>
-        <CardDescription className="text-gray-600 dark:text-gray-400">
-          {dateRangeLabel}
-        </CardDescription>
+        <CardTitle className="text-xl font-bold">
+          Last 7 Days Overview
+        </CardTitle>
+        <CardDescription>{range}</CardDescription>
       </CardHeader>
       <CardContent className="flex-1">
-        {chartData.length === 0 ? (
-          <div className="text-center p-8 text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-700 rounded-md h-full flex flex-col items-center justify-center">
+        {!hasData ? (
+          <div className="text-center p-8 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 rounded-md flex flex-col items-center justify-center">
             <Info className="h-8 w-8 mx-auto mb-3" />
             <p className="font-semibold">No data for the last 7 days.</p>
             <p className="text-sm">
@@ -159,77 +63,47 @@ export function PastWeekChart({
             </p>
           </div>
         ) : (
-          <ChartContainer
-            config={chartConfig}
-            className="w-full h-64 md:h-80 lg:h-96"
-          >
-            <BarChart
-              accessibilityLayer
-              data={chartData}
-              margin={{ bottom: 20 }}
-            >
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="#e0e0e0"
-                className="dark:stroke-gray-600"
-                vertical={false}
-              />
+          <ChartContainer config={chartConfig} className="w-full h-64 md:h-80">
+            <BarChart accessibilityLayer data={data} margin={{ bottom: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis
                 dataKey="date"
                 tickLine={false}
                 tickMargin={10}
                 axisLine={false}
-                className="text-xs dark:text-gray-300"
-                tickFormatter={(value) =>
-                  value.slice(3, 5) + "/" + value.slice(0, 2)
-                } // Example: "MM-DD"
+                tickFormatter={formatShortDate}
               />
               <YAxis
                 tickLine={false}
                 axisLine={false}
-                className="text-xs dark:text-gray-300"
-                tickFormatter={(value) =>
-                  `${getCurrencySymbol(currency)}${value}`
-                } // Add currency symbol to Y-axis
+                width={56}
+                tickFormatter={(v: number) => `${symbol}${compact.format(v)}`}
               />
               <ChartTooltip
-                cursor={{ fill: "rgba(0,0,0,0.1)" }}
+                cursor={{ fill: "rgba(0,0,0,0.08)" }}
                 content={
                   <ChartTooltipContent
                     indicator="dashed"
-                    formatter={(value, name) => {
-                      let displayValue = "";
-                      if (typeof value === "number") {
-                        displayValue = `${name + ": " + getCurrencySymbol(currency)}${value.toFixed(2)}`;
-                      } else if (typeof value === "string") {
-                        displayValue = `${name + ": " + getCurrencySymbol(currency)}${value}`;
-                      }
-                      const displayName = "";
-                      return [displayValue, displayName];
-                    }}
+                    labelFormatter={(_, payload) =>
+                      payload?.[0]?.payload?.date
+                        ? formatShortDate(payload[0].payload.date)
+                        : ""
+                    }
+                    formatter={(value, name) =>
+                      `${chartConfig[name as keyof typeof chartConfig]?.label ?? name}: ${formatMoney(Number(value))}`
+                    }
                   />
                 }
               />
-              <ChartLegend
-                content={<ChartLegendContent />}
-                wrapperStyle={{ paddingTop: "10px" }}
-                iconType="circle"
-                formatter={(value: string) => (
-                  <span className="text-gray-700 dark:text-gray-300 capitalize">
-                    {value}
-                  </span>
-                )}
-              />
+              <ChartLegend content={<ChartLegendContent />} />
               <Bar
                 dataKey="income"
-                fill="var(--constructive)"
-                name="Income"
+                fill="var(--color-income)"
                 radius={[5, 5, 0, 0]}
               />
               <Bar
                 dataKey="expense"
-                fill="var(--destructive)"
-                name="Expense"
+                fill="var(--color-expense)"
                 radius={[5, 5, 0, 0]}
               />
             </BarChart>

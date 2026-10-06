@@ -1,22 +1,21 @@
-// components/SignUpPage.tsx
-// This component provides the JSX structure for a modern and responsive signup page
-// using Shadcn/ui and Tailwind CSS.
-// It does NOT include any React state or logic for handling form submissions.
+"use client";
 
-"use client"; // This component needs to be a Client Component for interactivity
-
-import React, { useState } from "react";
-import { User as UserIcon, Mail, LockKeyhole, Loader2 } from "lucide-react"; // Lucide icons
-import { useForm } from "react-hook-form";
+import { useState, useTransition } from "react";
+import Link from "next/link";
+import { useForm, type FieldPath } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod/v4"; // Corrected import for Zod (standard way)
-import { FormSuccess } from "@/components/form-success";
-import { FormError } from "@/components/form-error";
+import type * as z from "zod/v4";
+import {
+  User as UserIcon,
+  Mail,
+  LockKeyhole,
+  Loader2,
+  type LucideIcon,
+} from "lucide-react";
+import { signUpSchema } from "@/schemas/authentication-schema";
 import { signUp } from "@/actions/signup";
 import { GoogleLogin } from "@/components/google-button";
-import Link from "next/link";
-
-// Import shadcn/ui components
+import { FormError } from "@/components/form-error";
 import {
   Card,
   CardContent,
@@ -36,14 +35,61 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-import { signUpSchema } from "@/schemas/authentication-schema";
+type SignUpInput = z.input<typeof signUpSchema>;
+type SignUpOutput = z.output<typeof signUpSchema>;
 
-const SignUpPage: React.FC = () => {
-  const [loading, setLoading] = useState(false);
+const FIELDS: {
+  name: FieldPath<SignUpInput>;
+  label: string;
+  type: string;
+  placeholder: string;
+  autoComplete: string;
+  icon: LucideIcon;
+  maxLength: number;
+}[] = [
+  {
+    name: "name",
+    label: "Name",
+    type: "text",
+    placeholder: "John Doe",
+    autoComplete: "name",
+    icon: UserIcon,
+    maxLength: 50,
+  },
+  {
+    name: "email",
+    label: "Email",
+    type: "email",
+    placeholder: "you@example.com",
+    autoComplete: "email",
+    icon: Mail,
+    maxLength: 254,
+  },
+  {
+    name: "password",
+    label: "Password",
+    type: "password",
+    placeholder: "••••••••",
+    autoComplete: "new-password",
+    icon: LockKeyhole,
+    maxLength: 64,
+  },
+  {
+    name: "passwordConfirmation",
+    label: "Confirm Password",
+    type: "password",
+    placeholder: "••••••••",
+    autoComplete: "new-password",
+    icon: LockKeyhole,
+    maxLength: 64,
+  },
+];
+
+export default function SignUpPage() {
+  const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
-  const form = useForm<z.infer<typeof signUpSchema>>({
+  const form = useForm<SignUpInput, unknown, SignUpOutput>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
       name: "",
@@ -53,24 +99,15 @@ const SignUpPage: React.FC = () => {
     },
   });
 
-  // Placeholder for form submission logic
-  const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
-    setLoading(true);
-    await signUp(data).then((res) => {
-      if (res.error) {
-        setLoading(false);
-        setError(res.error);
-        setSuccess("");
-      } else if (res.success) {
-        setLoading(false);
-        setSuccess(res.success);
-        setError("");
-      }
+  const onSubmit = (data: SignUpOutput) =>
+    startTransition(async () => {
+      setError("");
+      // On success the user is signed in and redirected to the dashboard.
+      const result = await signUp(data);
+      if (result?.error) setError(result.error);
     });
-  };
 
   return (
-    // Centering the card on the page using Tailwind flex utilities
     <div className="min-h-screen flex items-center justify-center p-4 bg-gray-100 dark:bg-gray-900">
       <Card className="w-full max-w-md p-6 sm:p-8 bg-white dark:bg-gray-800 shadow-xl rounded-lg">
         <CardHeader className="text-center space-y-2">
@@ -83,142 +120,42 @@ const SignUpPage: React.FC = () => {
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {/* Form for Credentials Signup */}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              {" "}
-              {/* Added native form tag for handleSubmit */}
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col gap-2">
-                    <FormLabel className="text-gray-700 dark:text-gray-200">
-                      Name
-                    </FormLabel>
-                    <FormControl>
-                      <div className="relative flex items-center">
-                        {" "}
-                        {/* Moved flex items-center here */}
-                        <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
-                        <Input
-                          {...field}
-                          value={field.value ?? ""}
-                          id="name"
-                          type="text"
-                          placeholder="John Doe"
-                          minLength={1}
-                          maxLength={50} // Changed max length to 50 for name
-                          required
-                          className="pl-10 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 focus:ring-blue-500"
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col gap-2">
-                    <FormLabel className="text-gray-700 dark:text-gray-200">
-                      Email
-                    </FormLabel>
-                    <FormControl>
-                      <div className="relative flex items-center">
-                        {" "}
-                        {/* Moved flex items-center here */}
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
-                        <Input
-                          {...field}
-                          value={field.value ?? ""}
-                          id="email"
-                          type="email"
-                          placeholder="you@example.com"
-                          required
-                          className="pl-10 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 focus:ring-blue-500"
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col gap-2">
-                    <FormLabel className="text-gray-700 dark:text-gray-200">
-                      Password
-                    </FormLabel>
-                    <FormControl>
-                      <div className="relative flex items-center">
-                        {" "}
-                        {/* Moved flex items-center here */}
-                        <LockKeyhole className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
-                        <Input
-                          {...field}
-                          value={field.value ?? ""}
-                          id="password"
-                          type="password"
-                          placeholder="••••••••"
-                          minLength={6}
-                          maxLength={64} // Set max length to 64 as discussed
-                          required
-                          className="pl-10 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 focus:ring-blue-500"
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="passwordConfirmation"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col gap-2">
-                    <FormLabel className="text-gray-700 dark:text-gray-200">
-                      Confirm Password
-                    </FormLabel>{" "}
-                    {/* Changed Label to FormLabel */}
-                    <FormControl>
-                      <div className="relative flex items-center">
-                        {" "}
-                        {/* Moved flex items-center here */}
-                        <LockKeyhole className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
-                        <Input
-                          {...field}
-                          value={field.value ?? ""}
-                          id="passwordConfirmation"
-                          type="password"
-                          placeholder="••••••••"
-                          minLength={6}
-                          maxLength={64} // Set max length to 64 as discussed
-                          required
-                          className="pl-10 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 focus:ring-blue-500"
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />{" "}
-                    {/* Add FormMessage for passwordConfirmation errors */}
-                  </FormItem>
-                )}
-              />
-              <FormSuccess message={success} />
+              {FIELDS.map(({ name, label, icon: Icon, ...input }) => (
+                <FormField
+                  key={name}
+                  control={form.control}
+                  name={name}
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-2">
+                      <FormLabel>{label}</FormLabel>
+                      <FormControl>
+                        <div className="relative flex items-center">
+                          <Icon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+                          <Input
+                            {...field}
+                            {...input}
+                            value={field.value ?? ""}
+                            className="pl-10"
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              ))}
               <FormError message={error} />
               <Button
                 type="submit"
-                className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-white font-semibold py-2 rounded-md transition-colors duration-200"
-                disabled={loading} // Disable button when submission is pending
+                className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-white font-semibold"
+                disabled={isPending}
               >
-                {loading ? (
+                {isPending ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing
-                    Up...
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating
+                    account...
                   </>
                 ) : (
                   "Sign Up with Email"
@@ -227,21 +164,19 @@ const SignUpPage: React.FC = () => {
             </form>
           </Form>
 
-          {/* Separator */}
           <div className="relative flex items-center">
-            <div className="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
+            <div className="flex-grow border-t border-gray-300 dark:border-gray-600" />
             <span className="flex-shrink mx-4 text-gray-500 dark:text-gray-400 text-sm">
               OR
             </span>
-            <div className="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
+            <div className="flex-grow border-t border-gray-300 dark:border-gray-600" />
           </div>
 
-          {/* Google OAuth Button */}
           <GoogleLogin />
         </CardContent>
 
         <CardFooter className="text-center text-sm text-gray-600 dark:text-gray-400 justify-center">
-          Already have an account?{" "}
+          Already have an account?
           <Link
             href="/auth/login"
             className="text-blue-600 hover:underline ml-1"
@@ -252,6 +187,4 @@ const SignUpPage: React.FC = () => {
       </Card>
     </div>
   );
-};
-
-export default SignUpPage;
+}
