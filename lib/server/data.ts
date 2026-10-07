@@ -123,22 +123,24 @@ async function ratesIfUnmigrated(userId: string) {
 }
 
 /** Transactions with dates in [start, end], newest first. */
-export async function getTransactionsInRange(
-  userId: string,
-  start: string,
-  end: string,
-): Promise<Transaction[]> {
-  const rates = await ratesIfUnmigrated(userId);
-  const snapshot = await transactionsCol(userId)
-    .where("date", ">=", start)
-    .where("date", "<=", end)
-    .orderBy("date", "desc")
-    .orderBy("createdAt", "desc")
-    .get();
-  return snapshot.docs.map((doc) => toTransaction(doc, rates));
-}
+export const getTransactionsInRange = cache(
+  async function getTransactionsInRange(
+    userId: string,
+    start: string,
+    end: string,
+  ): Promise<Transaction[]> {
+    const rates = await ratesIfUnmigrated(userId);
+    const snapshot = await transactionsCol(userId)
+      .where("date", ">=", start)
+      .where("date", "<=", end)
+      .orderBy("date", "desc")
+      .orderBy("createdAt", "desc")
+      .get();
+    return snapshot.docs.map((doc) => toTransaction(doc, rates));
+  },
+);
 
-export async function getRecentTransactions(
+export const getRecentTransactions = cache(async function getRecentTransactions(
   userId: string,
   limit = 5,
 ): Promise<Transaction[]> {
@@ -149,7 +151,7 @@ export async function getRecentTransactions(
     .limit(limit)
     .get();
   return snapshot.docs.map((doc) => toTransaction(doc, rates));
-}
+});
 
 const signed = (t: Transaction) =>
   t.type === "income" ? t.baseAmount : -t.baseAmount;
@@ -158,7 +160,9 @@ const signed = (t: Transaction) =>
  * Current balance in BASE_CURRENCY: total income minus total expenses.
  * Derived from the stored base amounts every time, so it can never drift.
  */
-export async function getBalance(userId: string): Promise<number> {
+export const getBalance = cache(async function getBalance(
+  userId: string,
+): Promise<number> {
   const rates = await ratesIfUnmigrated(userId);
   if (rates) {
     // Not migrated yet: legacy docs have no baseAmount to aggregate on.
@@ -180,7 +184,7 @@ export async function getBalance(userId: string): Promise<number> {
     sumOf("expense"),
   ]);
   return roundMoney(income - expense);
-}
+});
 
 export interface PeriodSummary {
   income: number;
@@ -246,25 +250,29 @@ function toBudget(doc: QueryDocumentSnapshot | DocumentSnapshot): Budget {
   };
 }
 
-export async function getBudgets(userId: string): Promise<Budget[]> {
+export const getBudgets = cache(async function getBudgets(
+  userId: string,
+): Promise<Budget[]> {
   const snapshot = await budgetsCol(userId).orderBy("createdAt").get();
   return snapshot.docs.map(toBudget);
-}
+});
 
-export async function getPinnedBudgetId(
+export const getPinnedBudgetId = cache(async function getPinnedBudgetId(
   userId: string,
 ): Promise<string | null> {
   const user = await userDoc(userId).get();
   const id = user.get("pinnedBudget");
   return typeof id === "string" && id ? id : null;
-}
+});
 
-export async function getPinnedBudget(userId: string): Promise<Budget | null> {
+export const getPinnedBudget = cache(async function getPinnedBudget(
+  userId: string,
+): Promise<Budget | null> {
   const id = await getPinnedBudgetId(userId);
   if (!id) return null;
   const doc = await budgetsCol(userId).doc(id).get();
   return doc.exists ? toBudget(doc) : null;
-}
+});
 
 export function withUsage(
   budget: Budget,

@@ -11,6 +11,12 @@ export async function requireUserId(): Promise<string> {
   return id;
 }
 
+/** The signed-in user's display name, if any. */
+export async function getUserName(): Promise<string | null> {
+  const session = await auth();
+  return session?.user?.name ?? null;
+}
+
 /** The signed-in user's ID, or null. For server actions. */
 export async function getUserId(): Promise<string | null> {
   const session = await auth();

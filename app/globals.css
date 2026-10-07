@@ -25,6 +25,8 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-constructive: var(--constructive);
+  --color-page: var(--page);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -44,6 +46,8 @@
 }
 
 :root {
+  /* App background behind cards */
+  --page: oklch(0.967 0.003 264.542);
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.129 0.042 264.695);
@@ -86,6 +90,7 @@
 }
 
 .dark {
+  --page: oklch(0.129 0.042 264.695);
   --background: oklch(0.129 0.042 264.695);
   --foreground: oklch(0.984 0.003 247.858);
   --card: #1e2939;

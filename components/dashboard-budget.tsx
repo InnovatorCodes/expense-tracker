@@ -1,29 +1,29 @@
-import Link from "next/link";
-import { Info } from "lucide-react";
+import { Pin } from "lucide-react";
 import type { BudgetWithUsage } from "@/types/budget";
 import { BudgetProgress } from "@/components/budget-progress";
+import { EmptyState, Panel, PanelLink } from "@/components/panel";
 
-const DashboardBudget = ({ budget }: { budget: BudgetWithUsage | null }) => (
-  <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md">
-    <div className="flex justify-between items-center mb-4">
-      <h3 className="text-xl font-semibold">Pinned Budget</h3>
-      <Link
-        href="/budgets"
-        className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
-      >
-        Manage
-      </Link>
-    </div>
+const DashboardBudget = ({
+  budget,
+  daysLeft,
+}: {
+  budget: BudgetWithUsage | null;
+  daysLeft?: number;
+}) => (
+  <Panel
+    title="Pinned Budget"
+    action={<PanelLink href="/budgets">Manage</PanelLink>}
+  >
     {budget ? (
-      <BudgetProgress budget={budget} />
+      <BudgetProgress budget={budget} daysLeft={daysLeft} />
     ) : (
-      <div className="text-center p-8 rounded-md text-gray-500 dark:text-gray-400">
-        <Info className="h-8 w-8 mx-auto mb-3" />
-        <p className="font-semibold">No budget pinned yet.</p>
-        <p className="text-sm">You can pin one budget from the Budgets page.</p>
-      </div>
+      <EmptyState
+        icon={<Pin className="h-8 w-8 mb-3" />}
+        title="No budget pinned yet."
+        hint="Pin one from the Budgets page to track it here."
+      />
     )}
-  </div>
+  </Panel>
 );
 
 export default DashboardBudget;

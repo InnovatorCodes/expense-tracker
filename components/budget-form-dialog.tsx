@@ -53,7 +53,7 @@ export function BudgetFormDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] dark:bg-gray-800">
+      <DialogContent className="sm:max-w-[425px] bg-card">
         <DialogHeader>
           <DialogTitle>
             {budget ? "Edit Budget" : "Create New Budget"}
@@ -142,7 +142,7 @@ function BudgetForm({
               <FormLabel>Monthly limit</FormLabel>
               <FormControl>
                 <div className="relative flex items-center">
-                  <span className="absolute left-3 text-gray-500 dark:text-gray-400">
+                  <span className="absolute left-3 text-muted-foreground">
                     {currencySymbol(BASE_CURRENCY)}
                   </span>
                   <Input

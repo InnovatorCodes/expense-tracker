@@ -1,37 +1,18 @@
 "use client";
 
-import { Pie, PieChart } from "recharts";
-import { Info } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Cell, Pie, PieChart } from "recharts";
 import {
   type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
 } from "@/components/ui/chart";
+import { EmptyState, Panel } from "@/components/panel";
+import { getCategoryColor, OTHER_COLOR } from "@/lib/categories";
 import { formatMoney } from "@/lib/money";
 
-const COLORS = [
-  "#10B981",
-  "#F43F5E",
-  "#3B82F6",
-  "#F59E0B",
-  "#8B5CF6",
-  "#06B6D4",
-  "#D946EF",
-  "#84CC16",
-  "#E11D48",
-  "#14B8A6",
-];
-const MAX_SLICES = 9;
+/** Slices beyond this are grouped as "Other" so small ones stay readable. */
+const MAX_SLICES = 7;
 
 export interface CategoryAmount {
   category: string;
@@ -45,79 +26,95 @@ export function ExpenseChart({
   data: CategoryAmount[];
   monthLabel: string;
 }) {
-  // Largest categories first; anything beyond MAX_SLICES is grouped as "Other".
   const sorted = data
     .filter((d) => d.amount > 0)
     .sort((a, b) => b.amount - a.amount);
-  const slices = sorted.slice(0, MAX_SLICES).map((d, i) => ({
+  const slices = sorted.slice(0, MAX_SLICES).map((d) => ({
     name: d.category,
     amount: d.amount,
-    fill: COLORS[i % COLORS.length],
+    // Fixed per category, so colours don't reshuffle from month to month.
+    fill: getCategoryColor(d.category),
   }));
   const rest = sorted.slice(MAX_SLICES).reduce((s, d) => s + d.amount, 0);
-  if (rest > 0) {
-    slices.push({
-      name: "Other",
-      amount: rest,
-      fill: COLORS[MAX_SLICES % COLORS.length],
-    });
-  }
+  if (rest > 0) slices.push({ name: "Other", amount: rest, fill: OTHER_COLOR });
+
+  const total = slices.reduce((s, d) => s + d.amount, 0);
   const chartConfig: ChartConfig = Object.fromEntries(
     slices.map((s) => [s.name, { label: s.name, color: s.fill }]),
   );
 
   return (
-    <Card className="flex flex-col shadow-xl rounded-lg">
-      <CardHeader className="pb-0">
-        <CardTitle className="text-xl font-bold">
-          Expenses for {monthLabel}
-        </CardTitle>
-        <CardDescription>Categorized spending overview</CardDescription>
-      </CardHeader>
-      <CardContent className="flex-1 pb-0 px-4">
-        {slices.length === 0 ? (
-          <div className="flex flex-col items-center p-8 text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 rounded-md m-4">
-            <Info className="h-8 w-8 mb-3" />
-            <p className="font-semibold">
-              No expenses recorded for this month.
-            </p>
-            <p className="text-sm">
-              Add some transactions to see your spending breakdown!
-            </p>
+    <Panel
+      title="Spending by Category"
+      description={monthLabel}
+      className="flex flex-col"
+    >
+      {slices.length === 0 ? (
+        <EmptyState
+          title="No expenses recorded for this month."
+          hint="Add some transactions to see your spending breakdown."
+        />
+      ) : (
+        <div className="grid gap-6 sm:grid-cols-[minmax(180px,2fr)_minmax(0,3fr)] items-center">
+          <div className="relative mx-auto w-full max-w-[240px]">
+            <ChartContainer
+              config={chartConfig}
+              className="aspect-square w-full"
+            >
+              <PieChart>
+                <ChartTooltip
+                  content={
+                    <ChartTooltipContent
+                      hideLabel
+                      formatter={(value, name) =>
+                        `${name}: ${formatMoney(Number(value))}`
+                      }
+                    />
+                  }
+                />
+                <Pie
+                  data={slices}
+                  dataKey="amount"
+                  nameKey="name"
+                  innerRadius="64%"
+                  outerRadius="95%"
+                  paddingAngle={slices.length > 1 ? 2 : 0}
+                  stroke="var(--card)"
+                  strokeWidth={2}
+                >
+                  {slices.map((s) => (
+                    <Cell key={s.name} fill={s.fill} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ChartContainer>
+            {/* Total in the middle of the donut. */}
+            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-xs text-muted-foreground">Total</span>
+              <span className="text-sm font-bold tabular-nums">
+                {formatMoney(total)}
+              </span>
+            </div>
           </div>
-        ) : (
-          <ChartContainer
-            config={chartConfig}
-            className="[&_.recharts-pie-label-text]:fill-foreground mx-auto aspect-square max-h-[340px] pb-0"
-          >
-            <PieChart>
-              <ChartTooltip
-                content={
-                  <ChartTooltipContent
-                    hideLabel
-                    formatter={(value, name) =>
-                      `${name}: ${formatMoney(Number(value))}`
-                    }
-                  />
-                }
-              />
-              <Pie
-                data={slices}
-                dataKey="amount"
-                nameKey="name"
-                label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                outerRadius="75%"
-                stroke="var(--card)"
-                strokeWidth={2}
-              />
-              <ChartLegend
-                content={<ChartLegendContent nameKey="name" />}
-                className="flex-wrap gap-2"
-              />
-            </PieChart>
-          </ChartContainer>
-        )}
-      </CardContent>
-    </Card>
+          <ul className="space-y-2.5 text-sm" aria-label="Spending by category">
+            {slices.map((s) => (
+              <li key={s.name} className="flex items-center gap-2.5 min-w-0">
+                <span
+                  className="h-2.5 w-2.5 rounded-full shrink-0"
+                  style={{ backgroundColor: s.fill }}
+                />
+                <span className="truncate mr-auto">{s.name}</span>
+                <span className="font-medium tabular-nums">
+                  {formatMoney(s.amount)}
+                </span>
+                <span className="w-10 text-right text-muted-foreground tabular-nums">
+                  {Math.round((s.amount / total) * 100)}%
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </Panel>
   );
 }

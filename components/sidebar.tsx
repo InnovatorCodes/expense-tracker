@@ -1,5 +1,8 @@
 "use client";
-import { useState } from "react";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Home,
   DollarSign,
@@ -8,92 +11,135 @@ import {
   Wallet,
   Menu,
   X,
+  ArrowLeftRight,
 } from "lucide-react";
-import { Button } from "./ui/button";
-import { usePathname } from "next/navigation";
 import { signOut } from "@/actions/signout";
-import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { Button } from "./ui/button";
+import { ThemeButton } from "./theme-button";
+
+const menuItems = [
+  { icon: Home, name: "Dashboard", href: "/dashboard" },
+  { icon: ArrowLeftRight, name: "Transactions", href: "/transactions" },
+  { icon: Wallet, name: "Budgets", href: "/budgets" },
+  { icon: HelpCircle, name: "Help", href: "/help" },
+];
+
+function Logo({ compact = false }: { compact?: boolean }) {
+  return (
+    <Link href="/dashboard" className="flex items-center gap-2">
+      <span className="bg-indigo-600 p-1.5 rounded-lg">
+        <DollarSign className="text-white" size={compact ? 20 : 24} />
+      </span>
+      <span className={cn("font-bold", compact ? "text-xl" : "text-2xl")}>
+        SpendSense
+      </span>
+    </Link>
+  );
+}
+
+/**
+ * Desktop: a fixed sidebar. Mobile: a sticky top bar with the menu button,
+ * logo and theme toggle, plus a slide-out menu over a dimmed backdrop.
+ */
 const Sidebar = () => {
   const pathname = usePathname();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [open, setOpen] = useState(false);
 
-  const menuItems = [
-    { icon: <Home size={22} />, name: "Dashboard", href: "/dashboard" },
-    {
-      icon: <DollarSign size={22} />,
-      name: "Transactions",
-      href: "/transactions",
-    },
-    { icon: <Wallet size={22} />, name: "Budgets", href: "/budgets" },
-    { icon: <HelpCircle size={22} />, name: "Help", href: "/help" },
-  ];
+  // Close the mobile menu with Escape.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
 
   return (
     <>
-      {/* Hamburger menu icon for mobile */}
-      <div
-        className={`sm:hidden fixed top-4 ${isSidebarOpen ? "top-20 right-4" : "left-4"} z-50`}
-      >
+      <header className="sm:hidden sticky top-0 z-30 flex items-center gap-2 h-14 px-3 border-b border-border/40 bg-card/90 backdrop-blur">
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          aria-label={isSidebarOpen ? "Close menu" : "Open menu"}
-          aria-expanded={isSidebarOpen}
-          className="bg-white dark:bg-gray-800 p-2 rounded-lg shadow-md"
+          onClick={() => setOpen(true)}
+          aria-label="Open menu"
+          aria-expanded={open}
+          aria-controls="app-sidebar"
         >
-          {isSidebarOpen ? (
-            <X size={30} className="text-gray-800 dark:text-white"></X>
-          ) : (
-            <Menu size={30} className="text-gray-800 dark:text-white" />
-          )}
+          <Menu className="h-6 w-6" />
         </Button>
-      </div>
+        <Logo compact />
+        <div className="ml-auto">
+          <ThemeButton />
+        </div>
+      </header>
 
-      {/* Sidebar for desktop and mobile overlay */}
+      {open && (
+        <div
+          className="sm:hidden fixed inset-0 z-40 bg-black/40 animate-in fade-in"
+          onClick={() => setOpen(false)}
+          aria-hidden
+        />
+      )}
+
       <aside
-        className={`z-40 fixed top-0 left-0 h-screen w-72 bg-white dark:bg-gray-800 p-6 pt-6 flex-col sm:flex transition-transform duration-300 ease-in-out border-r border-gray-200 dark:border-gray-700 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full sm:translate-x-0"}`}
+        id="app-sidebar"
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 w-72 flex flex-col bg-card border-r border-border/40 p-5 transition-transform duration-300 ease-in-out sm:translate-x-0",
+          open ? "translate-x-0" : "-translate-x-full",
+        )}
       >
-        <div className="sticky top-4 flex flex-col h-full">
-          <div className="flex items-center gap-2 mb-8 px-2">
-            <div className="bg-indigo-600 p-2 rounded-lg">
-              <DollarSign className="text-white" size={26} />
-            </div>
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
-              SpendSense
-            </h1>
-          </div>
-          <nav className="flex-1">
-            <ul className="flex flex-col gap-2">
-              {menuItems.map((item) => {
-                const isActive =
-                  pathname === item.href ||
-                  pathname.startsWith(`${item.href}/`);
-                return (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      aria-current={isActive ? "page" : undefined}
-                      onClick={() => setIsSidebarOpen(false)}
-                      className={`flex items-center gap-3 p-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-700 transition-colors ${isActive ? "bg-indigo-50 dark:bg-gray-700 text-indigo-600 dark:text-white" : ""}`}
-                    >
-                      {item.icon}
-                      <span className="font-medium text-base">{item.name}</span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
-          <form className="mt-auto mb-4" action={signOut}>
+        <div className="flex items-center justify-between mb-8 px-1">
+          <Logo />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="sm:hidden"
+            onClick={() => setOpen(false)}
+            aria-label="Close menu"
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+        <nav className="flex-1" aria-label="Main">
+          <ul className="flex flex-col gap-1">
+            {menuItems.map(({ icon: Icon, name, href }) => {
+              const active =
+                pathname === href || pathname.startsWith(`${href}/`);
+              return (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    aria-current={active ? "page" : undefined}
+                    onClick={() => setOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-colors",
+                      active
+                        ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    )}
+                  >
+                    <Icon size={20} />
+                    {name}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+        <div className="mt-auto flex items-center gap-2">
+          <form className="flex-1" action={signOut}>
             <Button
               type="submit"
-              className="w-full bg-gray-800 hover:bg-red-700 text-white flex items-center gap-3 justify-start px-4 py-2 text-sm shadow-sm transition-colors duration-200"
+              variant="ghost"
+              className="w-full justify-start gap-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
             >
               <LogOut size={18} />
-              Logout
+              Log out
             </Button>
           </form>
+          <div className="hidden sm:block">
+            <ThemeButton />
+          </div>
         </div>
       </aside>
     </>

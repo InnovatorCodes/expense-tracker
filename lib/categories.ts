@@ -76,3 +76,36 @@ const categoryIcons: Record<string, LucideIcon> = {
 export function getCategoryIcon(category: string): LucideIcon {
   return categoryIcons[category] ?? Wallet;
 }
+
+/**
+ * One fixed colour per category, used by charts and icons alike so a category
+ * looks the same everywhere and from month to month. Mid-tone hues that read
+ * on both light and dark backgrounds.
+ */
+const categoryColors: Record<string, string> = {
+  [ALL_CATEGORIES]: "#6366F1",
+  Food: "#F97316",
+  Transport: "#3B82F6",
+  Shopping: "#EC4899",
+  Utilities: "#EAB308",
+  Rent: "#8B5CF6",
+  Health: "#EF4444",
+  Education: "#06B6D4",
+  Entertainment: "#D946EF",
+  Bills: "#64748B",
+  Groceries: "#22C55E",
+  Travel: "#0EA5E9",
+  "Other Expense": "#A8A29E",
+  Salary: "#10B981",
+  Freelance: "#14B8A6",
+  Investments: "#84CC16",
+  Gift: "#F43F5E",
+  Refund: "#6366F1",
+  "Other Income": "#78716C",
+};
+
+export const OTHER_COLOR = "#94A3B8";
+
+export function getCategoryColor(category: string): string {
+  return categoryColors[category] ?? OTHER_COLOR;
+}

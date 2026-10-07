@@ -1,72 +1,80 @@
-import BalanceCard from "@/components/balance-card";
+import { Suspense } from "react";
 import RecentTransactions from "@/components/recent-transactions";
-import DashboardBudget from "@/components/dashboard-budget";
-import { ExpenseChart } from "@/components/expense-chart";
-import { PastWeekChart } from "@/components/past-week-chart";
 import { FloatingActions } from "@/components/floating-actions";
-import { RatesNotice } from "@/components/rates-notice";
-import { ALL_CATEGORIES } from "@/lib/categories";
-import { addDays, formatMonth, monthBounds, monthOf } from "@/lib/dates";
-import { getUserToday, requireUserId } from "@/lib/server/session";
-import { getExchangeRates } from "@/lib/server/exchange-rates";
+import { PageHeader } from "@/components/page-header";
+import { PanelSkeleton } from "@/components/panel";
+import { MonthSwitcher, resolveMonth } from "@/components/month-switcher";
+import { WelcomeCard } from "@/components/welcome-card";
 import {
-  dailyTotals,
-  getBalance,
-  getPinnedBudget,
-  getRecentTransactions,
-  getTransactionsInRange,
-  summarize,
-  withUsage,
-} from "@/lib/server/data";
+  BalanceSection,
+  CategorySection,
+  PinnedBudgetSection,
+  RatesNoticeSection,
+  WeekSection,
+} from "@/components/dashboard-sections";
+import { monthOf } from "@/lib/dates";
+import { getRecentTransactions } from "@/lib/server/data";
+import { getUserName, getUserToday, requireUserId } from "@/lib/server/session";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ month?: string | string[] }>;
+}) {
   const userId = await requireUserId();
   const today = await getUserToday();
-  const month = monthOf(today);
-  const { start: monthStart, end: monthEnd } = monthBounds(month);
-  const weekStart = addDays(today, -6);
+  const currentMonth = monthOf(today);
+  const month = resolveMonth((await searchParams).month, currentMonth);
 
-  // One range query covers both this month and the last 7 days.
-  const rangeStart = weekStart < monthStart ? weekStart : monthStart;
-  const [transactions, balance, recent, pinned, { stale }] = await Promise.all([
-    getTransactionsInRange(userId, rangeStart, monthEnd),
-    getBalance(userId),
-    getRecentTransactions(userId, 5),
-    getPinnedBudget(userId),
-    getExchangeRates(),
-  ]);
+  // One quick query decides between the first-run welcome and the full dashboard.
+  const recent = await getRecentTransactions(userId, 5);
 
-  const monthSummary = summarize(
-    transactions.filter((t) => t.date >= monthStart),
-  );
-  const categoryData = Object.entries(monthSummary.expenseByCategory)
-    .filter(([category]) => category !== ALL_CATEGORIES)
-    .map(([category, amount]) => ({ category, amount }));
+  if (recent.length === 0) {
+    return (
+      <>
+        <PageHeader title="Dashboard" />
+        <WelcomeCard name={await getUserName()} />
+        <FloatingActions actions={["income", "expense", "budget"]} />
+      </>
+    );
+  }
 
+  const props = { userId, month, today };
   return (
-    <section>
-      <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
-      <RatesNotice stale={stale} />
+    <>
+      <PageHeader
+        title="Dashboard"
+        actions={
+          <MonthSwitcher
+            month={month}
+            currentMonth={currentMonth}
+            basePath="/dashboard"
+          />
+        }
+      />
+      <Suspense fallback={null}>
+        <RatesNoticeSection />
+      </Suspense>
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <div className="flex flex-col gap-6 min-w-0">
-          <BalanceCard
-            balance={balance}
-            income={monthSummary.income}
-            expense={monthSummary.expense}
-            periodLabel="this Month"
-            today={today}
-          />
+          <Suspense fallback={<PanelSkeleton rows={2} />}>
+            <BalanceSection {...props} />
+          </Suspense>
           <RecentTransactions transactions={recent} />
-          <DashboardBudget
-            budget={pinned ? withUsage(pinned, monthSummary) : null}
-          />
+          <Suspense fallback={<PanelSkeleton rows={1} />}>
+            <PinnedBudgetSection {...props} />
+          </Suspense>
         </div>
         <div className="flex flex-col gap-6 min-w-0">
-          <ExpenseChart data={categoryData} monthLabel={formatMonth(month)} />
-          <PastWeekChart data={dailyTotals(transactions, weekStart, today)} />
+          <Suspense fallback={<PanelSkeleton chart />}>
+            <CategorySection {...props} />
+          </Suspense>
+          <Suspense fallback={<PanelSkeleton chart />}>
+            <WeekSection {...props} />
+          </Suspense>
         </div>
       </div>
       <FloatingActions actions={["income", "expense", "budget"]} />
-    </section>
+    </>
   );
 }

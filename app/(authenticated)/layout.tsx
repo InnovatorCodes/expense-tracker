@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Sidebar from "@/components/sidebar";
-import { ThemeButton } from "@/components/theme-button";
 import { requireUserId } from "@/lib/server/session";
 
 export const metadata: Metadata = {
@@ -18,13 +17,11 @@ export default async function AuthenticatedLayout({
   await requireUserId();
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white flex">
-      <div className="fixed top-4 right-4 z-50">
-        <ThemeButton />
-      </div>
+    <div className="min-h-screen bg-page text-foreground">
       <Sidebar />
-      <main className="flex-1 min-w-0 p-4 pt-20 pb-28 sm:p-6 sm:pb-28 sm:ml-72">
-        {children}
+      {/* Bottom padding keeps the floating "+" button off the last item. */}
+      <main className="min-w-0 sm:ml-72 px-4 py-5 pb-28 sm:px-8 sm:py-8">
+        <div className="mx-auto max-w-6xl">{children}</div>
       </main>
     </div>
   );

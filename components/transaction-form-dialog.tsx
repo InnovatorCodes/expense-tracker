@@ -64,7 +64,7 @@ export function TransactionFormDialog({
   const editing = Boolean(transaction);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto dark:bg-gray-800">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto bg-card">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">
             {editing ? "Edit Transaction" : "Add Transaction"}
@@ -196,7 +196,7 @@ function TransactionForm({
                 <FormLabel>Amount</FormLabel>
                 <FormControl>
                   <div className="relative flex items-center">
-                    <span className="absolute left-3 text-gray-500 dark:text-gray-400">
+                    <span className="absolute left-3 text-muted-foreground">
                       {currencySymbol(currency)}
                     </span>
                     <Input

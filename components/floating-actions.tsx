@@ -75,7 +75,7 @@ export function FloatingActions({ actions }: { actions: Action[] }) {
         )}
         <Button
           onClick={() => (single ? run(actions[0]) : setMenuOpen((o) => !o))}
-          className={`h-14 w-14 rounded-full text-white shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 ${menuOpen ? "bg-gray-600 rotate-45" : "bg-indigo-600 hover:bg-indigo-700"}`}
+          className={`h-14 w-14 rounded-full text-white shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 ${menuOpen ? "bg-muted-foreground rotate-45" : "bg-indigo-600 hover:bg-indigo-700"}`}
           aria-label={single ? ACTIONS[actions[0]].label : "Quick add"}
           aria-expanded={single ? undefined : menuOpen}
           aria-controls={single ? undefined : "quick-actions"}

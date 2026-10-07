@@ -96,3 +96,19 @@ export function formatShortDate(date: string): string {
     timeZone: "UTC",
   }).format(toUtc(date));
 }
+
+/** Days remaining in the month, counting `date` itself. */
+export function daysLeftInMonth(date: string): number {
+  const { end } = monthBounds(monthOf(date));
+  return Number(end.slice(8)) - Number(date.slice(8)) + 1;
+}
+
+/** "2026-10-06" -> "Tuesday, 6 Oct" */
+export function formatDayHeading(date: string): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+  }).format(toUtc(date));
+}

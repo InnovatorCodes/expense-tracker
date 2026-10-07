@@ -1,12 +1,13 @@
 import { ArrowUpRight, ArrowDownLeft } from "lucide-react";
 import { formatMoney } from "@/lib/money";
 import { formatDate } from "@/lib/dates";
+import { Panel } from "@/components/panel";
 
 interface BalanceCardProps {
   balance: number;
   income: number;
   expense: number;
-  /** e.g. "this Month" or "in September 2026" */
+  /** e.g. "this month" or "in September 2026" */
   periodLabel: string;
   today: string;
 }
@@ -18,40 +19,31 @@ const BalanceCard = ({
   periodLabel,
   today,
 }: BalanceCardProps) => (
-  <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md flex flex-col">
-    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-      Current Balance
-    </p>
+  <Panel>
+    <p className="text-sm font-medium text-muted-foreground">Current Balance</p>
     <p
-      className={`text-3xl font-bold mt-1 ${balance < 0 ? "text-red-600 dark:text-red-400" : "text-gray-800 dark:text-white"}`}
+      className={`text-3xl font-bold mt-1 tabular-nums ${balance < 0 ? "text-destructive" : ""}`}
     >
       {formatMoney(balance)}
     </p>
-    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+    <p className="text-sm text-muted-foreground mt-1">
       As of {formatDate(today)}
     </p>
-    <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
       <Stat
         label={`Income ${periodLabel}`}
         value={income}
-        tone="green"
-        icon={
-          <ArrowUpRight
-            className="text-green-600 dark:text-green-300"
-            size={20}
-          />
-        }
+        tone="constructive"
+        icon={<ArrowUpRight size={18} />}
       />
       <Stat
         label={`Expenses ${periodLabel}`}
         value={expense}
-        tone="red"
-        icon={
-          <ArrowDownLeft className="text-red-600 dark:text-red-300" size={20} />
-        }
+        tone="destructive"
+        icon={<ArrowDownLeft size={18} />}
       />
     </div>
-  </div>
+  </Panel>
 );
 
 function Stat({
@@ -62,23 +54,25 @@ function Stat({
 }: {
   label: string;
   value: number;
-  tone: "green" | "red";
+  tone: "constructive" | "destructive";
   icon: React.ReactNode;
 }) {
-  const bg =
-    tone === "green"
-      ? "bg-green-50 dark:bg-green-900/50"
-      : "bg-red-50 dark:bg-red-900/50";
-  const iconBg =
-    tone === "green"
-      ? "bg-green-200 dark:bg-green-800"
-      : "bg-red-200 dark:bg-red-800";
+  const styles =
+    tone === "constructive"
+      ? {
+          box: "bg-constructive/10",
+          chip: "bg-constructive/20 text-constructive",
+        }
+      : {
+          box: "bg-destructive/10",
+          chip: "bg-destructive/20 text-destructive",
+        };
   return (
-    <div className={`flex items-center gap-4 p-4 rounded-lg ${bg}`}>
-      <div className={`p-2 rounded-full ${iconBg}`}>{icon}</div>
-      <div>
-        <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
-        <p className="text-lg font-semibold text-gray-800 dark:text-white">
+    <div className={`flex items-center gap-3 p-3.5 rounded-lg ${styles.box}`}>
+      <div className={`p-2 rounded-full ${styles.chip}`}>{icon}</div>
+      <div className="min-w-0">
+        <p className="text-sm text-muted-foreground">{label}</p>
+        <p className="text-lg font-semibold tabular-nums">
           {formatMoney(value)}
         </p>
       </div>

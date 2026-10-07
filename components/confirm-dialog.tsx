@@ -31,7 +31,7 @@ export function ConfirmDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={(o) => !pending && onOpenChange(o)}>
-      <DialogContent className="sm:max-w-[400px] dark:bg-gray-800">
+      <DialogContent className="sm:max-w-[400px] bg-card">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>

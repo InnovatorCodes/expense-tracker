@@ -23,19 +23,19 @@ const faqData = [
             <strong>Select an Option:</strong> A menu will appear. Choose from:
             <ul className="list-circle space-y-1 pl-6 mt-2">
               <li>
-                <code className="bg-gray-300 dark:text-gray-800 text-sm font-mono rounded px-2 py-1">
+                <code className="bg-muted text-sm font-mono rounded px-2 py-1">
                   expense
                 </code>
                 : To record a new expense.
               </li>
               <li>
-                <code className="bg-gray-300 dark:text-gray-800 text-sm font-mono rounded px-2 py-1">
+                <code className="bg-muted text-sm font-mono rounded px-2 py-1">
                   income
                 </code>
                 : To record a new income.
               </li>
               <li>
-                <code className="bg-gray-300 dark:text-gray-800 text-sm font-mono rounded px-2 py-1">
+                <code className="bg-muted text-sm font-mono rounded px-2 py-1">
                   budget
                 </code>
                 : To create a new budget.
@@ -88,11 +88,11 @@ const faqData = [
           {"'"}+{"'"}
         </strong>{" "}
         button and then select between{" "}
-        <code className="bg-gray-300 dark:text-gray-800 text-sm font-mono rounded px-2 py-1">
+        <code className="bg-muted text-sm font-mono rounded px-2 py-1">
           expense
         </code>{" "}
         and{" "}
-        <code className="bg-gray-300 dark:text-gray-800  text-sm font-mono rounded px-2 py-1">
+        <code className="bg-muted text-sm font-mono rounded px-2 py-1">
           income
         </code>
         .
@@ -209,9 +209,10 @@ const FAQItem = ({
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="border-b border-gray-200 last:border-b-0">
+    <div className="border-b border-border/40 last:border-b-0">
       <button
-        className="flex w-full items-center justify-between py-4 text-left font-semibold text-gray-800 dark:text-white hover:text-blue-600 focus:outline-none"
+        aria-expanded={isOpen}
+        className="flex w-full items-center justify-between gap-4 py-4 text-left font-semibold hover:text-indigo-600 dark:hover:text-indigo-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
         onClick={() => setIsOpen(!isOpen)}
       >
         <span className="text-lg">{question}</span>
@@ -220,7 +221,7 @@ const FAQItem = ({
       <div
         className={`overflow-hidden transition-[max-height] duration-300 ease-in-out ${isOpen ? "max-h-[500px]" : "max-h-0"}`}
       >
-        <div className="pb-6 leading-relaxed text-gray-700 dark:text-white">
+        <div className="pb-6 leading-relaxed text-muted-foreground">
           {answer}
         </div>
       </div>
@@ -231,13 +232,13 @@ const FAQItem = ({
 // --- Main Help Page Component ---
 const HelpPage = () => {
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white p-4">
+    <div className="flex w-full justify-center">
       {/* This div represents the Card component from your example */}
-      <div className="w-full max-w-[800px] rounded-xl bg-white dark:bg-gray-800 dark:text-white p-8 shadow-lg">
-        <h1 className="mb-2 text-center text-4xl font-bold text-gray-900 dark:text-white">
+      <div className="w-full max-w-[800px] rounded-xl border border-border/40 bg-card p-6 sm:p-8 shadow-sm">
+        <h1 className="mb-2 text-center text-3xl sm:text-4xl font-bold">
           Help Center
         </h1>
-        <p className="mb-10 text-center text-gray-600 dark:text-white">
+        <p className="mb-8 text-center text-muted-foreground">
           Welcome to the help center! Find answers to common questions below.
         </p>
         <div className="faq-list">
